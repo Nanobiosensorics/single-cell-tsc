@@ -115,8 +115,10 @@ class Classifier_RESNET:
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='loss',
                                                            save_best_only=True)
+        
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=200)
 
-        self.callbacks = [reduce_lr, model_checkpoint]
+        self.callbacks = [reduce_lr, model_checkpoint, early_stopping]
 
         return model
 
