@@ -403,14 +403,14 @@ def visualize_filter(root_dir):
     archive_name = 'UCRArchive_2018'
     dataset_name = 'GunPoint'
     datasets_dict = read_dataset(root_dir, archive_name, dataset_name)
+    res_path = os.path.join(root_dir, 'results', classifier, archive_name, dataset_name)
 
     x_train = datasets_dict[dataset_name][0]
     y_train = datasets_dict[dataset_name][1]
 
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 
-    model = keras.models.load_model(
-        root_dir + 'results/' + classifier + '/' + archive_name + '/' + dataset_name + '/best_model.hdf5')
+    model = keras.models.load_model(os.path.join(res_path, 'best_model.hdf5'))
 
     # filters
     filters = model.layers[1].get_weights()[0]
@@ -442,7 +442,7 @@ def visualize_filter(root_dir):
         plt.plot(convolved_filter_1[idx, :, idx_filter], color=colors_conv[idx_c], label='class' + str(idx_c) + '-conv')
         plt.legend()
 
-    plt.savefig(root_dir + 'convolution-' + dataset_name + '.pdf')
+    plt.savefig(os.path.join(res_path, f'convolution-{dataset_name}.pdf'))
 
     return 1
 
@@ -591,7 +591,7 @@ def viz_cam(root_dir):
     import sklearn
     classifier = 'resnet'
     archive_name = 'UCRArchive_2018'
-    dataset_name = 'GunPoint'
+    res_path = os.path.join(root_dir, 'results', classifier, archive_name, dataset_name)
 
     if dataset_name == 'Gun_Point':
         save_name = 'GunPoint'
@@ -611,8 +611,7 @@ def viz_cam(root_dir):
 
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 
-    model = keras.models.load_model(
-        root_dir + 'results/' + classifier + '/' + archive_name + '/' + dataset_name + '/best_model.hdf5')
+    model = keras.models.load_model(os.path.join(res_path, 'best_model.hdf5'))
 
     # filters
     w_k_c = model.layers[-1].get_weights()[0]  # weights for each filter k for each class c
@@ -665,5 +664,4 @@ def viz_cam(root_dir):
 
         cbar = plt.colorbar()
         # cbar.ax.set_yticklabels([100,75,50,25,0])
-        plt.savefig(root_dir + '/temp/' + classifier + '-cam-' + save_name + '-class-' + str(int(c)) + '.png',
-                    bbox_inches='tight', dpi=1080)
+        plt.savefig(os.path.join(res_path, f'{classifier}-cam-{save_name}-class-{str(int(c))}.png'), bbox_inches='tight', dpi=1080)
