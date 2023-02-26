@@ -50,13 +50,9 @@ class Classifier_MLP:
 
 		file_path = self.output_directory+'best_model.hdf5' 
 
-		model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='loss', 
-			save_best_only=True)
-  
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=200)
-
+		model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='loss', save_best_only=True)
+		early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=200)
 		self.callbacks = [reduce_lr,model_checkpoint, early_stopping]
-
 		return model
 
 	def fit(self, x_train, y_train, x_val, y_val,y_true):
@@ -64,7 +60,7 @@ class Classifier_MLP:
 			print('error')
 			exit()
 		# x_val and y_val are only used to monitor the test loss and NOT for training  
-		batch_size = 16
+		batch_size = 128
 		nb_epochs = 5000
 
 		mini_batch_size = int(min(x_train.shape[0]/10, batch_size))

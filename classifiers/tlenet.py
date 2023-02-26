@@ -72,7 +72,7 @@ class Classifier_TLENET:
         
         model = keras.models.Model(inputs=input_layer,outputs=output_layer)
         
-        model.compile(optimizer=keras.optimizers.Adam(lr=0.01,decay=0.005),
+        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.01),
                       loss='categorical_crossentropy', metrics=['accuracy'])
         
         file_path = self.output_directory+'best_model.hdf5'
@@ -145,7 +145,7 @@ class Classifier_TLENET:
         if not tf.test.is_gpu_available:
             print('error')
             exit()
-        nb_epochs = 1000
+        nb_epochs = 1500
         batch_size= 256
         nb_classes = y_train.shape[1]
 

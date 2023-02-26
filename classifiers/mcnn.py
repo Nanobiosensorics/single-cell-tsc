@@ -139,8 +139,8 @@ class Classifier_MCNN:
         n_epochs = 200
         max_train_batch_size = 256
 
-        # print('Original train shape: ', x_train.shape)
-        # print('Original test shape: ', x_test.shape)
+        print('Original train shape: ', x_train.shape)
+        print('Original test shape: ', x_test.shape)
 
         # split train into validation set with validation_size = 0.2 train_size 
         x_train,y_train,x_val,y_val = self.split_train(x_train,y_train)
@@ -187,7 +187,7 @@ class Classifier_MCNN:
 
         valid_num = valid_set_x.shape[0]
         
-        # print("increase factor is ", increase_num, ', ori len', ori_len)
+        print("increase factor is ", increase_num, ', ori len', ori_len)
         valid_num_batch = int(valid_num / increase_num)
 
         test_num = test_set_x.shape[0]
@@ -228,7 +228,7 @@ class Classifier_MCNN:
             train_set_x = np.concatenate([train_set_x, ma_train], axis = 1)
             valid_set_x = np.concatenate([valid_set_x, ma_valid], axis = 1)
             test_set_x = np.concatenate([test_set_x, ma_test], axis = 1)
-        # print("Data length:", data_lengths)
+        print("Data length:", data_lengths)
 
         n_train_size = train_set_x.shape[0]
         n_valid_size = valid_set_x.shape[0]
@@ -239,16 +239,16 @@ class Classifier_MCNN:
         num_dim = train_set_x.shape[2] # For MTS 
         nb_classes = train_set_y.shape[1] 
 
-        # print('train size', n_train_size, ',valid size', n_valid_size, ' test size', n_test_size)
-        # print('batch size ', batch_size)
-        # print('n_train_batches is ', n_train_batches)
-        # print('data dim is ', data_dim)
-        # print('---------------------------')
+        print('train size', n_train_size, ',valid size', n_valid_size, ' test size', n_test_size)
+        print('batch size ', batch_size)
+        print('n_train_batches is ', n_train_batches)
+        print('data dim is ', data_dim)
+        print('---------------------------')
 
         ######################
         # BUILD ACTUAL MODEL #
         ######################
-        # print('building the model...')
+        print('building the model...')
 
         input_shapes, max_length = self.get_list_of_input_shapes(data_lengths,num_dim)
 
@@ -263,7 +263,7 @@ class Classifier_MCNN:
             if (self.verbose==True) :
                 model.summary()
 
-            # print('Training')
+            print('Training')
 
 
             # early-stopping parameters
@@ -342,7 +342,7 @@ class Classifier_MCNN:
                             valid_losses.append(curr_err)
                         valid_loss = sum(valid_losses) / float(len(valid_losses))
 
-                        # print('...epoch%i,valid err: %.5f |' % (epoch,valid_loss))
+                        print('...epoch%i,valid err: %.5f |' % (epoch,valid_loss), end='\r')
 
                         # if we got the best validation score until now
                         if valid_loss <= best_validation_loss:
@@ -366,14 +366,14 @@ class Classifier_MCNN:
                 epoch_avg_cost = epoch_cost/n_train_batches
                 epoch_avg_err = epoch_train_err/n_train_batches
 
-                # print ('train err %.5f, cost %.4f' %(epoch_avg_err,epoch_avg_cost))
+                print ('train err %.5f, cost %.4f' %(epoch_avg_err,epoch_avg_cost))
                 if epoch_avg_cost == 0:
                     break
 
-            # print('Optimization complete.')
+            print('Optimization complete.')
 
         # test the model
-        # print('Testing')
+        print('Testing')
         # load best model
         model = keras.models.load_model(self.output_directory+'best_model.hdf5')
 
@@ -399,8 +399,8 @@ class Classifier_MCNN:
 
         df_metrics = calculate_metrics(y_true,y_pred, duration)
 
-        # print(y_true.shape)
-        # print(y_pred.shape)
+        print(y_true.shape)
+        print(y_pred.shape)
 
         df_metrics.to_csv(self.output_directory+'df_metrics.csv', index=False)
 
@@ -458,7 +458,7 @@ class Classifier_MCNN:
 
         model = keras.models.Model(inputs=input_layers, outputs=output_layer)
 
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(lr=0.1),
+        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(learning_rate=0.1),
             metrics=['accuracy'])
         
         return model 

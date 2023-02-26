@@ -59,7 +59,7 @@ class Classifier_MCDCNN:
 
         model = keras.models.Model(inputs=input_layers, outputs=output_layer)
 
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(lr=0.01,momentum=0.9,decay=0.0005),
+        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(learning_rate=0.01,momentum=0.9),
                       metrics=['accuracy'])
 
         file_path = self.output_directory + 'best_model.hdf5'
@@ -87,8 +87,8 @@ class Classifier_MCDCNN:
         if not tf.test.is_gpu_available:
             print('error')
             exit()
-        mini_batch_size = 16
-        nb_epochs = 120
+        mini_batch_size = 128
+        nb_epochs = 500
 
         x_train, x_val, y_train, y_val = \
             train_test_split(x, y, test_size=0.33)
