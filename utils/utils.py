@@ -23,6 +23,7 @@ from utils.constants import MTS_DATASET_NAMES
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import LabelEncoder
 
 from scipy.interpolate import interp1d
@@ -101,11 +102,33 @@ def read_dataset(root_dir, archive_name, dataset_name):
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                        y_test.copy())
     else:
-        file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/' + dataset_name
-        x_train, y_train = readucr(file_name + '_TRAIN')
-        x_test, y_test = readucr(file_name + '_TEST')
+        
+        root_dir_dataset = "../cell_data/data/lognorm-evaluation/eval/max/fibronectin_full/"
+
+        print("Loading data from " + root_dir_dataset)
+
+        x_train = np.load(root_dir_dataset + 'X_train.npy')
+        y_train = np.load(root_dir_dataset + 'y_train.npy')
+        x_test = np.load(root_dir_dataset + 'X_test.npy')
+        y_test = np.load(root_dir_dataset + 'y_test.npy')
+        
+        print(f"train shape: {x_train.shape}, test shape: {x_test.shape}")  
+    
+        # std_ = x_train.std(axis=1, keepdims=True)
+        # std_[std_ == 0] = 1.0
+        # x_train = (x_train - x_train.mean(axis=1, keepdims=True)) / std_
+
+        # std_ = x_test.std(axis=1, keepdims=True)
+        # std_[std_ == 0] = 1.0
+        # x_test = (x_test - x_test.mean(axis=1, keepdims=True)) / std_
+
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
-                                       y_test.copy())
+                                        y_test.copy())
+        # file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/' + dataset_name
+        # x_train, y_train = readucr(file_name + '_TRAIN')
+        # x_test, y_test = readucr(file_name + '_TEST')
+        # datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
+        #                                y_test.copy())
 
     return datasets_dict
 
@@ -160,21 +183,34 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
                                            y_test.copy())
 
     else:
-        for dataset_name in DATASET_NAMES:
-            root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
-            file_name = root_dir_dataset + dataset_name
-            x_train, y_train = readucr(file_name + '_TRAIN')
-            x_test, y_test = readucr(file_name + '_TEST')
+        dataset_name = 'cell_data'
+        root_dir_dataset = "../cell_data/data/lognorm-evaluation/eval/max/fibronectin_full/"
 
-            datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
-                                           y_test.copy())
+        print("Loading data from " + root_dir_dataset)
 
-            dataset_names_to_sort.append((dataset_name, len(x_train)))
+        x_train = np.load(root_dir_dataset + 'X_train.npy')
+        y_train = np.load(root_dir_dataset + 'y_train.npy')
+        x_test = np.load(root_dir_dataset + 'X_test.npy')
+        y_test = np.load(root_dir_dataset + 'y_test.npy')    
+    
+        print(f"train shape: {x_train.shape}, test shape: {x_test.shape}")
+        # std_ = x_train.std(axis=1, keepdims=True)
+        # std_[std_ == 0] = 1.0
+        # x_train = (x_train - x_train.mean(axis=1, keepdims=True)) / std_
 
-        dataset_names_to_sort.sort(key=operator.itemgetter(1))
+        # std_ = x_test.std(axis=1, keepdims=True)
+        # std_[std_ == 0] = 1.0
+        # x_test = (x_test - x_test.mean(axis=1, keepdims=True)) / std_
 
-        for i in range(len(DATASET_NAMES)):
-            DATASET_NAMES[i] = dataset_names_to_sort[i][0]
+        datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
+                                        y_test.copy())
+
+        # dataset_names_to_sort.append((dataset_name, len(x_train)))
+
+        # dataset_names_to_sort.sort(key=operator.itemgetter(1))
+
+        # for i in range(len(DATASET_NAMES)):
+        #     DATASET_NAMES[i] = dataset_names_to_sort[i][0]
 
     return datasets_dict
 
@@ -337,8 +373,15 @@ def plot_epochs_metric(hist, file_name, metric='loss'):
     plt.legend(['train', 'val'], loc='upper left')
     plt.savefig(file_name, bbox_inches='tight')
     plt.close()
-
-
+    
+def plot_conf_matrix(y_true, y_pred, file_name):
+    cm = confusion_matrix(y_true, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    plt.figure()
+    disp.plot(cmap=plt.cm.Blues)
+    plt.savefig(file_name, bbox_inches='tight')
+    plt.close()
+    
 def save_logs_t_leNet(output_directory, hist, y_pred, y_true, duration):
     hist_df = pd.DataFrame(hist.history)
     hist_df.to_csv(output_directory + 'history.csv', index=False)
@@ -363,6 +406,8 @@ def save_logs_t_leNet(output_directory, hist, y_pred, y_true, duration):
 
     # plot losses
     plot_epochs_metric(hist, output_directory + 'epochs_loss.png')
+    plot_epochs_metric(hist, output_directory + 'epochs_acc.png', metric='accuracy')
+    plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
 
 
 def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_val=None, y_pred_val=None):
@@ -393,15 +438,17 @@ def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_
 
     # plot losses
     plot_epochs_metric(hist, output_directory + 'epochs_loss.png')
+    plot_epochs_metric(hist, output_directory + 'epochs_acc.png', metric='accuracy')
+    plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
 
     return df_metrics
 
 
 def visualize_filter(root_dir):
     import tensorflow.keras as keras
-    classifier = 'resnet'
+    classifier = 'cnn'
     archive_name = 'UCRArchive_2018'
-    dataset_name = 'GunPoint'
+    dataset_name = 'Coffee'
     datasets_dict = read_dataset(root_dir, archive_name, dataset_name)
     res_path = os.path.join(root_dir, 'results', classifier, archive_name, dataset_name)
 
@@ -589,8 +636,9 @@ def viz_for_survey_paper(root_dir, filename='results-ucr-mts.csv'):
 def viz_cam(root_dir):
     import tensorflow.keras as keras
     import sklearn
-    classifier = 'resnet'
+    classifier = 'cnn'
     archive_name = 'UCRArchive_2018'
+    dataset_name = 'Coffee'
     res_path = os.path.join(root_dir, 'results', classifier, archive_name, dataset_name)
 
     if dataset_name == 'Gun_Point':
