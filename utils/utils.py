@@ -111,6 +111,10 @@ def read_dataset(root_dir, archive_name, dataset_name):
         y_train = np.load(root_dir_dataset + 'y_train.npy')
         x_test = np.load(root_dir_dataset + 'X_test.npy')
         y_test = np.load(root_dir_dataset + 'y_test.npy')
+        labels = pd.read_csv(root_dir_dataset + 'dictionary.csv')
+        labels_dict = {}
+        for n in range(labels.shape[0]):
+            labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
         
         print(f"train shape: {x_train.shape}, test shape: {x_test.shape}")  
     
@@ -123,7 +127,7 @@ def read_dataset(root_dir, archive_name, dataset_name):
         # x_test = (x_test - x_test.mean(axis=1, keepdims=True)) / std_
 
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
-                                        y_test.copy())
+                                        y_test.copy(), labels_dict.copy())
         # file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/' + dataset_name
         # x_train, y_train = readucr(file_name + '_TRAIN')
         # x_test, y_test = readucr(file_name + '_TEST')
@@ -191,7 +195,11 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
         x_train = np.load(root_dir_dataset + 'X_train.npy')
         y_train = np.load(root_dir_dataset + 'y_train.npy')
         x_test = np.load(root_dir_dataset + 'X_test.npy')
-        y_test = np.load(root_dir_dataset + 'y_test.npy')    
+        y_test = np.load(root_dir_dataset + 'y_test.npy')
+        labels = pd.read_csv(root_dir_dataset + 'dictionary.csv')
+        labels_dict = {}
+        for n in range(labels.shape[0]):
+            labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
     
         print(f"train shape: {x_train.shape}, test shape: {x_test.shape}")
         # std_ = x_train.std(axis=1, keepdims=True)
@@ -203,7 +211,7 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
         # x_test = (x_test - x_test.mean(axis=1, keepdims=True)) / std_
 
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
-                                        y_test.copy())
+                                        y_test.copy(), labels_dict.copy())
 
         # dataset_names_to_sort.append((dataset_name, len(x_train)))
 
@@ -374,9 +382,9 @@ def plot_epochs_metric(hist, file_name, metric='loss'):
     plt.savefig(file_name, bbox_inches='tight')
     plt.close()
     
-def plot_conf_matrix(y_true, y_pred, file_name):
-    cm = confusion_matrix(y_true, y_pred)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+def plot_conf_matrix(y_true, y_pred, labels, file_name):
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     plt.figure()
     disp.plot(cmap=plt.cm.Blues)
     plt.savefig(file_name, bbox_inches='tight')
@@ -407,7 +415,7 @@ def save_logs_t_leNet(output_directory, hist, y_pred, y_true, duration):
     # plot losses
     plot_epochs_metric(hist, output_directory + 'epochs_loss.png')
     plot_epochs_metric(hist, output_directory + 'epochs_acc.png', metric='accuracy')
-    plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
+    # plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
 
 
 def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_val=None, y_pred_val=None):
@@ -439,7 +447,7 @@ def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_
     # plot losses
     plot_epochs_metric(hist, output_directory + 'epochs_loss.png')
     plot_epochs_metric(hist, output_directory + 'epochs_acc.png', metric='accuracy')
-    plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
+    # plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
 
     return df_metrics
 

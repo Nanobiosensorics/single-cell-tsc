@@ -14,6 +14,7 @@ from utils.constants import CLASSIFIERS
 from utils.constants import ARCHIVE_NAMES
 from utils.constants import ITERATIONS
 from utils.utils import read_all_datasets
+from utils.utils import plot_conf_matrix
 
 
 def fit_classifier():
@@ -21,7 +22,11 @@ def fit_classifier():
     y_train = datasets_dict[dataset_name][1]
     x_test = datasets_dict[dataset_name][2]
     y_test = datasets_dict[dataset_name][3]
-
+    labels = {}
+    
+    if len(datasets_dict[dataset_name]) > 4:
+        labels = list(datasets_dict[dataset_name][4].keys())
+    print(labels)
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
 
     # transform the labels from integers to one hot vectors
@@ -42,6 +47,13 @@ def fit_classifier():
     classifier = create_classifier(classifier_name, input_shape, nb_classes, output_directory)
 
     classifier.fit(x_train, y_train, x_test, y_test, y_true)
+    
+    y_pred = classifier.predict(x_test, y_true, return_df_metrics = False)
+    y_pred = np.argmax(y_pred, axis=1)
+    y_true_labels = [ labels[i] for i in y_true ]
+    y_pred_labels = [ labels[i] for i in y_pred ]
+    
+    plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf_matrix.png') 
 
 
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=True):
