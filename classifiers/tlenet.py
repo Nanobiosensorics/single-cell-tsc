@@ -208,7 +208,7 @@ class Classifier_TLENET:
 
         keras.backend.clear_session()
 
-    def predict(self, x_test, y_true,x_train,y_train,y_test):
+    def predict(self, x_test, y_true,x_train,y_train,y_test, return_df_metrics=True):
         batch_size = 256
 
         # limit the number of augmented time series if series too long or too many
@@ -226,24 +226,28 @@ class Classifier_TLENET:
         model = keras.models.load_model(model_path)
 
         y_pred = model.predict(new_x_test, batch_size=batch_size)
-        # convert the predicted from binary to integer
-        y_pred = np.argmax(y_pred, axis=1)
+        
+        if return_df_metrics:
+            # convert the predicted from binary to integer
+            y_pred = np.argmax(y_pred, axis=1)
 
-        # get the true predictions of the test set
-        y_predicted = []
-        test_num_batch = int(new_x_test.shape[0] / tot_increase_num)
-        for i in range(test_num_batch):
-            unique_value, sub_ind, correspond_ind, count = np.unique(y_pred, True, True, True)
+            # get the true predictions of the test set
+            y_predicted = []
+            test_num_batch = int(new_x_test.shape[0] / tot_increase_num)
+            for i in range(test_num_batch):
+                unique_value, sub_ind, correspond_ind, count = np.unique(y_pred, True, True, True)
 
-            idx_max = np.argmax(count)
-            predicted_label = unique_value[idx_max]
+                idx_max = np.argmax(count)
+                predicted_label = unique_value[idx_max]
 
-            y_predicted.append(predicted_label)
+                y_predicted.append(predicted_label)
 
-        y_pred = np.array(y_predicted)
+            y_pred = np.array(y_predicted)
 
-        df_metrics = calculate_metrics(y_true, y_pred, 0.0)
-        return df_metrics
+            df_metrics = calculate_metrics(y_true, y_pred, 0.0)
+            return df_metrics
+        else:
+            return y_pred
         
                 
         

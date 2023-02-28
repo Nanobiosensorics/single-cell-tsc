@@ -48,7 +48,7 @@ def fit_classifier():
 
     classifier.fit(x_train, y_train, x_test, y_test, y_true)
     
-    y_pred = classifier.predict(x_test, y_true, return_df_metrics = False)
+    y_pred = classifier.predict(x_test, y_true, x_train, y_train, y_test, return_df_metrics = False)
     y_pred = np.argmax(y_pred, axis=1)
     y_true_labels = [ labels[i] for i in y_true ]
     y_pred_labels = [ labels[i] for i in y_pred ]

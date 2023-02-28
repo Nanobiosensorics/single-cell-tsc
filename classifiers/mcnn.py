@@ -498,7 +498,7 @@ class Classifier_MCNN:
                 # clear memeory 
                 keras.backend.clear_session()
 
-    def predict(self, x_test, y_true,x_train,y_train,y_test):
+    def predict(self, x_test, y_true,x_train,y_train,y_test, return_df_metrics=True):
         df_metrics, _ , _ = self.train(x_train, y_train, x_test, y_test,y_true, do_train=False)
 
         return df_metrics
