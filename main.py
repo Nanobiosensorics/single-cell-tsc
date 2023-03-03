@@ -151,19 +151,19 @@ def run(args):
         
         print(output_directory)
         
-        # if os.path.exists(test_dir_df_metrics):
-        #     print('Already done')
-        # else:
+        if os.path.exists(test_dir_df_metrics):
+            print('Already done')
+        else:
 
-        #     create_directory(output_directory)
-        #     datasets_dict = read_dataset(data_path)
+            create_directory(output_directory)
+            datasets_dict = read_dataset(data_path)
 
-        #     fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
+            fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
 
-        #     print('DONE')
+            print('DONE')
 
-        #     # the creation of this directory means
-        #     create_directory(output_directory + '/DONE')
+            # the creation of this directory means
+            create_directory(output_directory + '/DONE')
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DL-4-TS')
