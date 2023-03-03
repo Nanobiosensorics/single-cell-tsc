@@ -100,35 +100,30 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
 # root_dir = '.'
 
 def run(args):
-    # if sys.argv[1] == 'run_all':
-    #     archive_name = sys.argv[2]
-    #     dataset_name = sys.argv[3]
-    #     for classifier_name in [ 'mcnn', 'tlenet', 'twiesn']:
-    #         print('classifier_name', classifier_name)
+    data_path = args.src_path
+    dest_path = args.dst_path
+    if args.mode == 'all':
+        dataset_name = data_path.strip().split('/')[-2]
+        iter_cnt = 3 if args.iter_cnt is None else args.iter_cnt
+        for classifier_name in ['cnn', 'mlp']:
+            print('classifier_name', classifier_name)
 
-    #         datasets_dict = read_all_datasets(root_dir, archive_name, "cell_data")
+            datasets_dict = read_all_datasets(data_path)
 
-    #         for iter in range(3):
-    #             print('\t\titer', iter)
+            for i in range(iter_cnt):
+                
+                output_directory = os.path.join(dest_path, classifier_name, dataset_name + f'_itr_{i}', '')
 
-    #             trr = ''
-    #             if iter != 0:
-    #                 trr = '_itr_' + str(iter)
+                print('dataset_name: ', dataset_name, output_directory)
 
-    #             tmp_output_directory = root_dir + '/results/' + classifier_name + '/' + archive_name + trr + '/'
+                create_directory(output_directory)
 
-    #             print('\t\t\tdataset_name: ', dataset_name)
+                fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
 
-    #             output_directory = tmp_output_directory + dataset_name + '/'
-
-    #             create_directory(output_directory)
-
-    #             fit_classifier()
-
-    #             print('\t\t\t\tDONE')
-
-    #             # the creation of this directory means
-    #             create_directory(output_directory + '/DONE')
+                print('DONE')
+                
+                # the creation of this directory means
+                create_directory(output_directory + '/DONE')
 
     # # elif sys.argv[1] == 'transform_mts_to_ucr_format':
     # #     transform_mts_to_ucr_format()
@@ -141,41 +136,43 @@ def run(args):
     # # elif sys.argv[1] == 'generate_results_csv':
     # #     res = generate_results_csv('results.csv', root_dir)
     # #     print(res.to_string())
-    # else:
-    # this is the code used to launch an experiment on a dataset
-    data_path = args.src_path
-    dest_path = args.dst_path
-    dataset_name = data_path.strip().split('/')[-2]
-    classifier_name = args.classifier
+    elif args.mode == 'single':
+        # this is the code used to launch an experiment on a dataset
+        dataset_name = data_path.strip().split('/')[-2]
+        classifier_name = args.classifier
+            
+        output_directory = os.path.join(dest_path, classifier_name, dataset_name, '')
         
-    output_directory = os.path.join(dest_path, classifier_name, dataset_name, '')
-    
-    create_directory(output_directory)
-
-    test_dir_df_metrics = output_directory + 'df_metrics.csv'
-
-    print('Method: ', classifier_name)
-    
-    print(output_directory)
-    
-    if os.path.exists(test_dir_df_metrics):
-        print('Already done')
-    else:
-
         create_directory(output_directory)
-        datasets_dict = read_dataset(data_path)
 
-        fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
+        test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
-        print('DONE')
+        print('Method: ', classifier_name)
+        
+        print(output_directory)
+        
+        # if os.path.exists(test_dir_df_metrics):
+        #     print('Already done')
+        # else:
 
-        # the creation of this directory means
-        create_directory(output_directory + '/DONE')
+        #     create_directory(output_directory)
+        #     datasets_dict = read_dataset(data_path)
+
+        #     fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
+
+        #     print('DONE')
+
+        #     # the creation of this directory means
+        #     create_directory(output_directory + '/DONE')
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DL-4-TS')
     parser.add_argument('-p', '--src_path', type=str, help="path to the data source folder", required=True)
     parser.add_argument('-d', '--dst_path', type=str, help="path to the result folder", required=True)
     parser.add_argument('-c', '--classifier', type=str, required=False)
+    parser.add_argument('-m', '--mode', type=str, 
+                        choices=['single', 'all', 'transform_mts_to_ucr_format', 'visualize_filter', 
+                                 'viz_for_survey_paper', 'viz_cam', 'generate_results'], required=True)
+    parser.add_argument('-i', '--iter_cnt', type=int, required=False)
     args = parser.parse_args()
     run(args)
