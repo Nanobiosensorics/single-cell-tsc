@@ -162,11 +162,6 @@ def read_all_datasets(data_path, split_val=False):
             x_train = x_train.values
             x_test = x_test.values
 
-            scaler = StandardScaler()
-            scaler.fit(x_train)
-            x_train = scaler.transform(x_train)
-            x_test = scaler.transform(x_test)
-
             datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                            y_test.copy())
 
@@ -186,14 +181,11 @@ def read_all_datasets(data_path, split_val=False):
         for n in range(labels.shape[0]):
             labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
     
+        scaler = StandardScaler()
+        scaler.fit(x_train)
+        x_train = scaler.transform(x_train)
+        x_test = scaler.transform(x_test)
         print(f"train shape: {x_train.shape}, test shape: {x_test.shape}")
-        std_ = x_train.std(axis=1, keepdims=True)
-        std_[std_ == 0] = 1.0
-        x_train = (x_train - x_train.mean(axis=1, keepdims=True)) / std_
-
-        std_ = x_test.std(axis=1, keepdims=True)
-        std_[std_ == 0] = 1.0
-        x_test = (x_test - x_test.mean(axis=1, keepdims=True)) / std_
 
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                         y_test.copy(), labels_dict.copy())
