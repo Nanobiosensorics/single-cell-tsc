@@ -5,6 +5,7 @@ from utils.utils import transform_mts_to_ucr_format
 from utils.utils import visualize_filter
 from utils.utils import viz_for_survey_paper
 from utils.utils import viz_cam
+import argparse
 import os
 import numpy as np
 import pandas as pd
@@ -18,7 +19,7 @@ from utils.utils import read_all_datasets
 from utils.utils import plot_conf_matrix
 
 
-def fit_classifier():
+def fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory):
     x_train = datasets_dict[dataset_name][0]
     y_train = datasets_dict[dataset_name][1]
     x_test = datasets_dict[dataset_name][2]
@@ -96,78 +97,82 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
 ############################################### main
 
 # change this directory for your machine
-root_dir = '.'
+# root_dir = '.'
 
-if sys.argv[1] == 'run_all':
-    for classifier_name in CLASSIFIERS:
-        print('classifier_name', classifier_name)
+def run(args):
+    data_path = args.src_path
+    dest_path = args.dst_path
+    if args.mode == 'all':
+        dataset_name = data_path.strip().split('/')[-2]
+        iter_cnt = 3 if args.iter_cnt is None else args.iter_cnt
+        for classifier_name in ['cnn', 'mlp']:
+            print('classifier_name', classifier_name)
 
-        for archive_name in ARCHIVE_NAMES:
-            print('\tarchive_name', archive_name)
+            datasets_dict = read_all_datasets(data_path)
 
-            datasets_dict = read_all_datasets(root_dir, archive_name)
+            for i in range(iter_cnt):
+                
+                output_directory = os.path.join(dest_path, classifier_name, dataset_name + f'_itr_{i}', '')
 
-            for iter in range(ITERATIONS):
-                print('\t\titer', iter)
+                print('dataset_name: ', dataset_name, output_directory)
 
-                trr = ''
-                if iter != 0:
-                    trr = '_itr_' + str(iter)
+                create_directory(output_directory)
 
-                tmp_output_directory = root_dir + '/results/' + classifier_name + '/' + archive_name + trr + '/'
+                fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
 
-                for dataset_name in utils.constants.dataset_names_for_archive[archive_name]:
-                    print('\t\t\tdataset_name: ', dataset_name)
+                print('DONE')
+                
+                # the creation of this directory means
+                create_directory(output_directory + '/DONE')
 
-                    output_directory = tmp_output_directory + dataset_name + '/'
-
-                    create_directory(output_directory)
-
-                    fit_classifier()
-
-                    print('\t\t\t\tDONE')
-
-                    # the creation of this directory means
-                    create_directory(output_directory + '/DONE')
-
-elif sys.argv[1] == 'transform_mts_to_ucr_format':
-    transform_mts_to_ucr_format()
-elif sys.argv[1] == 'visualize_filter':
-    visualize_filter(root_dir)
-elif sys.argv[1] == 'viz_for_survey_paper':
-    viz_for_survey_paper(root_dir)
-elif sys.argv[1] == 'viz_cam':
-    viz_cam(root_dir)
-elif sys.argv[1] == 'generate_results_csv':
-    res = generate_results_csv('results.csv', root_dir)
-    print(res.to_string())
-else:
-    # this is the code used to launch an experiment on a dataset
-    archive_name = sys.argv[1]
-    dataset_name = sys.argv[2]
-    classifier_name = sys.argv[3]
-    itr = sys.argv[4]
-
-    if itr == '_itr_0':
-        itr = ''
-
-    output_directory = root_dir + '/results/' + classifier_name + '/' + archive_name + itr + '/' + \
-                       dataset_name + '/'
-
-    test_dir_df_metrics = output_directory + 'df_metrics.csv'
-
-    print('Method: ', archive_name, dataset_name, classifier_name, itr)
-
-    if os.path.exists(test_dir_df_metrics):
-        print('Already done')
-    else:
-
+    # # elif sys.argv[1] == 'transform_mts_to_ucr_format':
+    # #     transform_mts_to_ucr_format()
+    # # elif sys.argv[1] == 'visualize_filter':
+    # #     visualize_filter(root_dir)
+    # # elif sys.argv[1] == 'viz_for_survey_paper':
+    # #     viz_for_survey_paper(root_dir)
+    # # elif sys.argv[1] == 'viz_cam':
+    # #     viz_cam(root_dir)
+    # # elif sys.argv[1] == 'generate_results_csv':
+    # #     res = generate_results_csv('results.csv', root_dir)
+    # #     print(res.to_string())
+    elif args.mode == 'single':
+        # this is the code used to launch an experiment on a dataset
+        dataset_name = data_path.strip().split('/')[-2]
+        classifier_name = args.classifier
+            
+        output_directory = os.path.join(dest_path, classifier_name, dataset_name, '')
+        
         create_directory(output_directory)
-        datasets_dict = read_dataset(root_dir, archive_name, dataset_name)
 
-        fit_classifier()
+        test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
-        print('DONE')
+        print('Method: ', classifier_name)
+        
+        print(output_directory)
+        
+        # if os.path.exists(test_dir_df_metrics):
+        #     print('Already done')
+        # else:
 
-        # the creation of this directory means
-        create_directory(output_directory + '/DONE')
+        #     create_directory(output_directory)
+        #     datasets_dict = read_dataset(data_path)
+
+        #     fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
+
+        #     print('DONE')
+
+        #     # the creation of this directory means
+        #     create_directory(output_directory + '/DONE')
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='DL-4-TS')
+    parser.add_argument('-p', '--src_path', type=str, help="path to the data source folder", required=True)
+    parser.add_argument('-d', '--dst_path', type=str, help="path to the result folder", required=True)
+    parser.add_argument('-c', '--classifier', type=str, required=False)
+    parser.add_argument('-m', '--mode', type=str, 
+                        choices=['single', 'all', 'transform_mts_to_ucr_format', 'visualize_filter', 
+                                 'viz_for_survey_paper', 'viz_cam', 'generate_results'], required=True)
+    parser.add_argument('-i', '--iter_cnt', type=int, required=False)
+    args = parser.parse_args()
+    run(args)

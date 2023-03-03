@@ -58,25 +58,24 @@ def create_path(root_dir, classifier_name, archive_name):
         return output_directory
 
 
-def read_dataset(root_dir, archive_name, dataset_name):
+def read_dataset(data_path):
     datasets_dict = {}
-    cur_root_dir = root_dir.replace('-temp', '')
+    # cur_root_dir = root_dir.replace('-temp', '')
+    dataset_name = data_path.split("/")[-2]
 
-    if archive_name == 'mts_archive':
-        file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
-        x_train = np.load(file_name + 'x_train.npy')
-        y_train = np.load(file_name + 'y_train.npy')
-        x_test = np.load(file_name + 'x_test.npy')
-        y_test = np.load(file_name + 'y_test.npy')
+    if 'mts_archive' in data_path:
+        x_train = np.load(data_path + 'x_train.npy')
+        y_train = np.load(data_path + 'y_train.npy')
+        x_test = np.load(data_path + 'x_test.npy')
+        y_test = np.load(data_path + 'y_test.npy')
 
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                        y_test.copy())
 
-    elif archive_name == 'UCRArchive_2018':
-        root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
-        df_train = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TRAIN.tsv', sep='\t', header=None)
+    elif 'UCRArchive_2018' in data_path:
+        df_train = pd.read_csv(os.path.join(data_path, dataset_name + '_TRAIN.tsv'), sep='\t', header=None)
 
-        df_test = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TEST.tsv', sep='\t', header=None)
+        df_test = pd.read_csv(os.path.join(data_path, dataset_name + '_TEST.tsv'), sep='\t', header=None)
 
         y_train = df_train.values[:, 0]
         y_test = df_test.values[:, 0]
@@ -102,16 +101,14 @@ def read_dataset(root_dir, archive_name, dataset_name):
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                        y_test.copy())
     else:
-        
-        root_dir_dataset = "../cell_data/data/lognorm-evaluation/eval/max/fibronectin_full/"
 
-        print("Loading data from " + root_dir_dataset)
+        print("Loading data from " + data_path)
 
-        x_train = np.load(root_dir_dataset + 'X_train.npy')
-        y_train = np.load(root_dir_dataset + 'y_train.npy')
-        x_test = np.load(root_dir_dataset + 'X_test.npy')
-        y_test = np.load(root_dir_dataset + 'y_test.npy')
-        labels = pd.read_csv(root_dir_dataset + 'dictionary.csv')
+        x_train = np.load(data_path + 'X_train.npy')
+        y_train = np.load(data_path + 'y_train.npy')
+        x_test = np.load(data_path + 'X_test.npy')
+        y_test = np.load(data_path + 'y_test.npy')
+        labels = pd.read_csv(data_path + 'dictionary.csv')
         labels_dict = {}
         for n in range(labels.shape[0]):
             labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
@@ -125,42 +122,40 @@ def read_dataset(root_dir, archive_name, dataset_name):
         # std_ = x_test.std(axis=1, keepdims=True)
         # std_[std_ == 0] = 1.0
         # x_test = (x_test - x_test.mean(axis=1, keepdims=True)) / std_
-
-        datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
-                                        y_test.copy(), labels_dict.copy())
         # file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/' + dataset_name
         # x_train, y_train = readucr(file_name + '_TRAIN')
         # x_test, y_test = readucr(file_name + '_TEST')
         # datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
         #                                y_test.copy())
+        
+        datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
+                                        y_test.copy(), labels_dict.copy())
 
     return datasets_dict
 
 
-def read_all_datasets(root_dir, archive_name, split_val=False):
+def read_all_datasets(data_path, split_val=False):
     datasets_dict = {}
-    cur_root_dir = root_dir.replace('-temp', '')
+    # cur_root_dir = root_dir.replace('-temp', '')
     dataset_names_to_sort = []
 
-    if archive_name == 'mts_archive':
-
+    if 'mts_archive' in data_path:
         for dataset_name in MTS_DATASET_NAMES:
-            root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
+            path = os.path.join(data_path, dataset_name)
 
-            x_train = np.load(root_dir_dataset + 'x_train.npy')
-            y_train = np.load(root_dir_dataset + 'y_train.npy')
-            x_test = np.load(root_dir_dataset + 'x_test.npy')
-            y_test = np.load(root_dir_dataset + 'y_test.npy')
+            x_train = np.load(path + 'x_train.npy')
+            y_train = np.load(path + 'y_train.npy')
+            x_test = np.load(path + 'x_test.npy')
+            y_test = np.load(path + 'y_test.npy')
 
             datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                            y_test.copy())
-    elif archive_name == 'UCRArchive_2018':
+    elif 'UCRArchive_2018' in data_path:
         for dataset_name in DATASET_NAMES_2018:
-            root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
+            path = os.path.join(data_path, dataset_name)
 
-            df_train = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TRAIN.tsv', sep='\t', header=None)
-
-            df_test = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TEST.tsv', sep='\t', header=None)
+            df_train = pd.read_csv(os.path.join(path, dataset_name + '_TRAIN.tsv'), sep='\t', header=None)
+            df_test = pd.read_csv(os.path.join(path, dataset_name + '_TEST.tsv'), sep='\t', header=None)
 
             y_train = df_train.values[:, 0]
             y_test = df_test.values[:, 0]
@@ -187,16 +182,17 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
                                            y_test.copy())
 
     else:
-        dataset_name = 'cell_data'
-        root_dir_dataset = "../cell_data/data/lognorm-evaluation/eval/max/fibronectin_full/"
+        # dataset_name = 'cell_data'
+        # root_dir_dataset = "../cell_data/data/lognorm-evaluation/eval/max/fibronectin_full/"
+        dataset_name = data_path.split('/')[-2]
 
-        print("Loading data from " + root_dir_dataset)
+        print("Loading data from " + data_path)
 
-        x_train = np.load(root_dir_dataset + 'X_train.npy')
-        y_train = np.load(root_dir_dataset + 'y_train.npy')
-        x_test = np.load(root_dir_dataset + 'X_test.npy')
-        y_test = np.load(root_dir_dataset + 'y_test.npy')
-        labels = pd.read_csv(root_dir_dataset + 'dictionary.csv')
+        x_train = np.load(data_path + 'X_train.npy')
+        y_train = np.load(data_path + 'y_train.npy')
+        x_test = np.load(data_path + 'X_test.npy')
+        y_test = np.load(data_path + 'y_test.npy')
+        labels = pd.read_csv(data_path + 'dictionary.csv')
         labels_dict = {}
         for n in range(labels.shape[0]):
             labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
