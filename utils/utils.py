@@ -383,7 +383,7 @@ def plot_epochs_metric(hist, file_name, metric='loss'):
     plt.close()
     
 def plot_conf_matrix(y_true, y_pred, labels, file_name):
-    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    cm = confusion_matrix(y_true, y_pred, labels=labels, normalize='true')
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     plt.figure()
     disp.plot(cmap=plt.cm.Blues)
