@@ -7,6 +7,7 @@ from utils.utils import viz_for_survey_paper
 from utils.utils import viz_cam
 import os
 import numpy as np
+import pandas as pd
 import sys
 import sklearn
 import utils
@@ -52,6 +53,9 @@ def fit_classifier():
     y_pred = np.argmax(y_pred, axis=1)
     y_true_labels = [ labels[i] for i in y_true ]
     y_pred_labels = [ labels[i] for i in y_pred ]
+    
+    true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
+    true_pred_values.to_csv(output_directory + "true-pred-values.csv", index=False)
     
     plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf_matrix.png') 
 
