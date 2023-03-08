@@ -58,7 +58,7 @@ def fit_classifier(datasets_dict, dataset_name, classifier_name, output_director
     true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
     true_pred_values.to_csv(output_directory + "true-pred-values.csv", index=False)
     
-    plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf_matrix.png') 
+    plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
 
 
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=True):
