@@ -106,7 +106,7 @@ def run(args):
         dataset_name = data_path.strip().split('/')[-2]
         iter_cnt = 3 if args.iter_cnt is None else args.iter_cnt
         print('iters ', iter_cnt)
-        for classifier_name in ['fcn', 'mlp', 'resnet', 'encoder', 'mcdcnn', 'cnn', 'inception', 'mcnn']:
+        for classifier_name in ['fcn', 'mlp', 'resnet', 'encoder', 'mcdcnn', 'cnn', 'inception']:
             print('classifier_name', classifier_name)
 
             datasets_dict = read_all_datasets(data_path)
