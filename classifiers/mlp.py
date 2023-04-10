@@ -51,7 +51,7 @@ class Classifier_MLP:
 		file_path = self.output_directory+'best_model.hdf5' 
 
 		model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='loss', save_best_only=True)
-		early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=200)
+		early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=100)
 		self.callbacks = [reduce_lr,model_checkpoint, early_stopping]
 		return model
 
