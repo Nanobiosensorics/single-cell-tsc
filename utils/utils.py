@@ -59,7 +59,7 @@ def create_path(root_dir, classifier_name, archive_name):
         return output_directory
 
 
-def read_dataset(data_path):
+def read_dataset(data_path, normalize=True):
     datasets_dict = {}
     # cur_root_dir = root_dir.replace('-temp', '')
     dataset_name = data_path.split("/")[-2]
@@ -109,15 +109,16 @@ def read_dataset(data_path):
         y_train = np.load(data_path + 'y_train.npy')
         x_test = np.load(data_path + 'X_test.npy')
         y_test = np.load(data_path + 'y_test.npy')
-        labels = pd.read_csv(data_path + 'dictionary.csv')
+        labels = pd.read_csv(data_path + '../dictionary.csv')
         labels_dict = {}
         for n in range(labels.shape[0]):
             labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
         
-        scaler = StandardScaler()
-        scaler.fit(x_train)
-        x_train = scaler.transform(x_train)
-        x_test = scaler.transform(x_test)
+        if normalize:
+            scaler = StandardScaler()
+            scaler.fit(x_train)
+            x_train = scaler.transform(x_train)
+            x_test = scaler.transform(x_test)
         
         print(f"train shape: {x_train.shape}, test shape: {x_test.shape}")  
         
@@ -171,12 +172,13 @@ def read_all_datasets(data_path, split_val=False):
         dataset_name = data_path.split('/')[-2]
 
         print("Loading data from " + data_path)
+    
 
         x_train = np.load(data_path + 'X_train.npy')
         y_train = np.load(data_path + 'y_train.npy')
         x_test = np.load(data_path + 'X_test.npy')
         y_test = np.load(data_path + 'y_test.npy')
-        labels = pd.read_csv(data_path + 'dictionary.csv')
+        labels = pd.read_csv(data_path + '../dictionary.csv')
         labels_dict = {}
         for n in range(labels.shape[0]):
             labels_dict[labels.iloc[n, 0]] = labels.iloc[n,1]
@@ -618,24 +620,28 @@ def viz_for_survey_paper(root_dir, filename='results-ucr-mts.csv'):
     viz_plot(root_dir, df)
 
 
-def viz_cam(root_dir):
+def viz_cam(data_path, model_path, labels):
     import tensorflow.keras as keras
     import sklearn
-    classifier = 'cnn'
-    archive_name = 'UCRArchive_2018'
-    dataset_name = 'Coffee'
-    res_path = os.path.join(root_dir, 'results', classifier, archive_name, dataset_name)
-
-    if dataset_name == 'Gun_Point':
-        save_name = 'GunPoint'
-    else:
-        save_name = dataset_name
+    classifier = 'resnet'
+    # archive_name = 'UCRArchive_2018'
+    # dataset_name = 'Coffee'
+    dataset_name = data_path.strip().split('/')[-2]
+    save_name = dataset_name
+    
     max_length = 2000
-    datasets_dict = read_dataset(root_dir, archive_name, dataset_name)
+    datasets_dict = read_dataset(data_path, False)
 
     x_train = datasets_dict[dataset_name][0]
     y_train = datasets_dict[dataset_name][1]
+    x_test = datasets_dict[dataset_name][2]
     y_test = datasets_dict[dataset_name][3]
+    # labels = datasets_dict[dataset_name][4]
+    
+    scaler = StandardScaler()
+    scaler.fit(x_train)
+    x_train_norm = scaler.transform(x_train)
+    x_test_norm = scaler.transform(x_test)
 
     # transform to binary labels
     enc = sklearn.preprocessing.OneHotEncoder()
@@ -644,7 +650,7 @@ def viz_cam(root_dir):
 
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 
-    model = keras.models.load_model(os.path.join(res_path, 'best_model.hdf5'))
+    model = keras.models.load_model(os.path.join(model_path, 'best_model.hdf5'))
 
     # filters
     w_k_c = model.layers[-1].get_weights()[0]  # weights for each filter k for each class c
@@ -656,13 +662,15 @@ def viz_cam(root_dir):
 
     new_feed_forward = keras.backend.function(new_input_layer, new_output_layer)
 
-    classes = np.unique(y_train)
+    classes = sorted(np.unique(y_train))
 
-    for c in classes:
+    for l, c in zip(labels, classes):
         plt.figure()
         count = 0
         c_x_train = x_train[np.where(y_train == c)]
-        for ts in c_x_train:
+        c_x_train_norm = x_train_norm[np.where(y_train == c)]
+        for rs, ts in zip(c_x_train, c_x_train_norm):
+            rs = rs.reshape(1, -1, 1)
             ts = ts.reshape(1, -1, 1)
             [conv_out, predicted] = new_feed_forward([ts])
             pred_label = np.argmax(predicted)
@@ -679,15 +687,16 @@ def viz_cam(root_dir):
                 cas = cas / max(cas)
                 cas = cas * 100
 
-                x = np.linspace(0, ts.shape[1] - 1, max_length, endpoint=True)
+                x = np.linspace(0, rs.shape[1] - 1, max_length, endpoint=True)
                 # linear interpolation to smooth
-                f = interp1d(range(ts.shape[1]), ts[0, :, 0])
+                f = interp1d(range(rs.shape[1]), rs[0, :, 0])
                 y = f(x)
                 # if (y < -2.2).any():
                 #     continue
-                f = interp1d(range(ts.shape[1]), cas)
+                f = interp1d(range(rs.shape[1]), cas)
                 cas = f(x).astype(int)
-                plt.scatter(x=x, y=y, c=cas, cmap='jet', marker='.', s=2, vmin=0, vmax=100, linewidths=0.0)
+                plt.title(l)
+                plt.scatter(x=x, y=y, c=cas, cmap='magma', marker='.', s=2, vmin=0, vmax=100, linewidths=0.0)
                 if dataset_name == 'Gun_Point':
                     if c == 1:
                         plt.yticks([-1.0, 0.0, 1.0, 2.0])
@@ -697,4 +706,4 @@ def viz_cam(root_dir):
 
         cbar = plt.colorbar()
         # cbar.ax.set_yticklabels([100,75,50,25,0])
-        plt.savefig(os.path.join(res_path, f'{classifier}-cam-{save_name}-class-{str(int(c))}.png'), bbox_inches='tight', dpi=1080)
+        plt.savefig(os.path.join(model_path, f'{classifier}-cam-{save_name}-class-{str(int(c))}.png'), bbox_inches='tight', dpi=200)

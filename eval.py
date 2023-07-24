@@ -1,9 +1,11 @@
 import os
-from evaluation.load import get_dictionary, get_test, get_colors
+from evaluation.load import get_dictionary, get_test, get_colors, get_data
 from evaluation.plots import *
+from utils.utils import viz_cam
 import argparse
 
-def run(data_path, result_path, color_path=None):
+def run(data_path, result_path, color_path):
+    print(data_path, result_path, color_path)
     result_paths = [ { 'name': name, 'path': os.path.join(result_path, name)} 
                     for name in os.listdir(result_path) if os.path.isdir(os.path.join(result_path, name))]
     experiments = [ {'name': result['name'],'path': result['path'], 
@@ -11,10 +13,12 @@ def run(data_path, result_path, color_path=None):
                                             for name in os.listdir(result['path']) if os.path.isdir(os.path.join(result['path'], name))])} for result in result_paths]
 
     labels, label_ids = get_dictionary(data_path)
+    x_data, y_data, data_labels = get_data(data_path, labels)
     x_test, y_test, test_labels = get_test(data_path, labels)
-    cmap = None
-    if color_path is not None:
-        cmap = get_colors(color_path, labels)
+    cmap, names = get_colors(color_path, labels)
+    
+    print("Generating average plot")
+    generate_mean_plot(os.path.join(result_path, 'signal-means.png'), x_data, y_data, label_ids, cmap, names)
 
     print("Generating loss-accuracy plots")
     for experiment in experiments:
@@ -26,30 +30,35 @@ def run(data_path, result_path, color_path=None):
     print("Generating test prediction types plots")
     for experiment in experiments:
         for exp in experiment['experiments']:
-            generate_tst_pred_plot(exp, x_test, y_test, labels, cmap)
+            generate_tst_pred_plot(exp, x_test, y_test, labels, cmap, names)
 
     print("Generating test prediction plots")
     for experiment in experiments:
         for exp in experiment['experiments']:
-            generate_preds_plot(exp, x_test, y_test, labels)
+            generate_preds_plot(exp, x_test, y_test, labels, names)
 
     print("Generating test histogram plots")
-    generate_test_hist_plot(os.path.join(result_path, 'tst-hist.png'), x_test, y_test, labels, label_ids, cmap)
+    generate_test_hist_plot(os.path.join(result_path, 'tst-hist.png'), x_test, y_test, labels, label_ids, cmap, names)
 
     print("Generating test types histogram plots")
     for experiment in experiments:
         for exp in experiment['experiments']:
-            generate_test_type_hist_plot(exp, x_test, y_test, labels, label_ids, cmap)
+            generate_test_type_hist_plot(exp, x_test, y_test, labels, label_ids, cmap, names)
 
-    print("Generating confusing matrices")
+    print("Generating confusion matrices")
     for experiment in experiments:
         for exp in experiment['experiments']:
-            generate_conf_matrix(exp, test_labels, labels)
+            generate_conf_matrix(exp, test_labels, labels, names)
 
-    print("Generating confusing graphs")
+    print("Generating confusion graphs")
     for experiment in experiments:
         for exp in experiment['experiments']:
-            generate_conf_graph(exp, test_labels, labels, label_ids, cmap)
+            generate_conf_graph(exp, test_labels, labels, label_ids, cmap, names)
+
+    for experiment in experiments:
+        for exp in experiment['experiments']:
+            if(any(classifier in exp for classifier in ['fcn', 'resnet', 'inception'])):
+                viz_cam(data_path, exp, names)
             
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DL-4-TS-EVAL')

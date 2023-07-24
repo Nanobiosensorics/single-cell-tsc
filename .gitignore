@@ -107,3 +107,6 @@ venv.bak/
 
 archives/
 results/
+/**/*.json
+/**/*.png
+/**/*.docx

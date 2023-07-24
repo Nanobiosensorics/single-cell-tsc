@@ -59,7 +59,7 @@ class Classifier_MCDCNN:
 
         model = keras.models.Model(inputs=input_layers, outputs=output_layer)
 
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(learning_rate=0.01,momentum=0.9),
+        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.SGD(learning_rate=0.001,momentum=0.9),
                       metrics=['accuracy'])
 
         file_path = self.output_directory + 'best_model.hdf5'
@@ -67,7 +67,7 @@ class Classifier_MCDCNN:
         model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
                                                            save_best_only=True)
         
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=100)
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005, start_from_epoch=100)
 
         self.callbacks = [model_checkpoint, early_stopping]
 
@@ -87,20 +87,20 @@ class Classifier_MCDCNN:
         if not tf.test.is_gpu_available:
             print('error')
             exit()
-        mini_batch_size = 128
-        nb_epochs = 500
+        mini_batch_size = 32
+        nb_epochs = 1000
 
-        x_train, x_val, y_train, y_val = \
-            train_test_split(x, y, test_size=0.33)
+        # x_train, x_val, y_train, y_val = \
+        #     train_test_split(x, y, test_size=0.33)
 
         x_test = self.prepare_input(x_test)
-        x_train = self.prepare_input(x_train)
-        x_val = self.prepare_input(x_val)
+        x_train = self.prepare_input(x)
+        # x_val = self.prepare_input(x_val)
 
         start_time = time.time()
 
-        hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size, epochs=nb_epochs,
-                              verbose=self.verbose, validation_data=(x_val, y_val), callbacks=self.callbacks)
+        hist = self.model.fit(x_train, y, batch_size=mini_batch_size, epochs=nb_epochs,
+                              verbose=self.verbose, validation_data=(x_test, y_test), callbacks=self.callbacks)
 
         duration = time.time() - start_time
 

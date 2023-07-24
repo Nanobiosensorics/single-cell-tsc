@@ -17,7 +17,64 @@ from utils.constants import ARCHIVE_NAMES
 from utils.constants import ITERATIONS
 from utils.utils import read_all_datasets
 from utils.utils import plot_conf_matrix
+from sklearn.model_selection import StratifiedKFold
 
+def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, output_directory):
+    x_train = datasets_dict[dataset_name][0]
+    y_train = datasets_dict[dataset_name][1]
+    x_test = datasets_dict[dataset_name][2]
+    y_test = datasets_dict[dataset_name][3]
+    labels = {}
+    
+    if len(datasets_dict[dataset_name]) > 4:
+        labels = list(datasets_dict[dataset_name][4].keys())
+    print(labels)
+    
+    x_data = np.vstack((x_train, x_test))
+    y_data = np.concatenate((y_train, y_test))
+    nb_classes = len(np.unique(y_data))
+
+    print(x_data.shape, y_data.shape)
+
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=52)
+    
+    for n, (tr_idx, ts_idx) in enumerate(skf.split(x_data, y_data)):
+        x_train, y_train = x_data[tr_idx], y_data[tr_idx]
+        x_test, y_test = x_data[ts_idx], y_data[ts_idx] 
+        
+        
+        # transform the labels from integers to one hot vectors
+        enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
+        enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
+        y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
+        y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
+
+        # save orignal y because later we will use binary
+        y_true = np.argmax(y_test, axis=1)
+
+        if len(x_train.shape) == 2:  # if univariate
+            # add a dimension to make it multivariate with one dimension 
+            x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
+            x_test = x_test.reshape((x_test.shape[0], x_test.shape[1], 1))
+        
+        target_dir = os.path.join(output_directory, f'cv_{n}') + '/'
+        
+        create_directory(target_dir)
+
+        input_shape = x_train.shape[1:]
+        classifier = create_classifier(classifier_name, input_shape, nb_classes, target_dir)
+
+        classifier.fit(x_train, y_train, x_test, y_test, y_true)
+        
+        y_pred = classifier.predict(x_test, y_true, x_train, y_train, y_test, return_df_metrics = False)
+        y_pred = np.argmax(y_pred, axis=1)
+        y_true_labels = [ labels[i] for i in y_true ]
+        y_pred_labels = [ labels[i] for i in y_pred ]
+        
+        true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
+        true_pred_values.to_csv(target_dir + "true-pred-values.csv", index=False)
+        
+        plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
 
 def fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory):
     x_train = datasets_dict[dataset_name][0]
@@ -106,7 +163,7 @@ def run(args):
         dataset_name = data_path.strip().split('/')[-2]
         iter_cnt = 3 if args.iter_cnt is None else args.iter_cnt
         print('iters ', iter_cnt)
-        for classifier_name in ['fcn', 'mlp', 'resnet', 'encoder', 'mcdcnn', 'cnn', 'inception']:
+        for classifier_name in ['cnn', 'fcn', 'mlp', 'resnet', 'mcdcnn', 'inception']:
             print('classifier_name', classifier_name)
 
             datasets_dict = read_all_datasets(data_path)
@@ -117,8 +174,14 @@ def run(args):
                 print('dataset_name: ', dataset_name, output_directory)
 
                 create_directory(output_directory)
-
-                fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
+                
+                if args.validation is not None:
+                    if args.validation == 'cross_val':
+                        fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, output_directory)
+                    else:
+                        fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
+                else:
+                    fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
 
                 print('DONE')
                 
@@ -131,8 +194,8 @@ def run(args):
     # #     visualize_filter(root_dir)
     # # elif sys.argv[1] == 'viz_for_survey_paper':
     # #     viz_for_survey_paper(root_dir)
-    # # elif sys.argv[1] == 'viz_cam':
-    # #     viz_cam(root_dir)
+    elif args.mode == 'viz_cam':
+        viz_cam(args.src_path, args.dst_path)
     # # elif sys.argv[1] == 'generate_results_csv':
     # #     res = generate_results_csv('results.csv', root_dir)
     # #     print(res.to_string())
@@ -170,6 +233,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--src_path', type=str, help="path to the data source folder", required=True)
     parser.add_argument('-d', '--dst_path', type=str, help="path to the result folder", required=True)
     parser.add_argument('-c', '--classifier', type=str, required=False)
+    parser.add_argument('-v', '--validation', type=str, choices=['normal', 'cross_val'], required=False)
     parser.add_argument('-m', '--mode', type=str, 
                         choices=['single', 'all', 'transform_mts_to_ucr_format', 'visualize_filter', 
                                  'viz_for_survey_paper', 'viz_cam', 'generate_results'], required=True)

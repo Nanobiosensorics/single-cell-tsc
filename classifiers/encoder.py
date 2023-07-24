@@ -74,7 +74,7 @@ class Classifier_ENCODER:
             exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
         batch_size = 128
-        nb_epochs = 10
+        nb_epochs = 1000
 
         mini_batch_size = batch_size
 

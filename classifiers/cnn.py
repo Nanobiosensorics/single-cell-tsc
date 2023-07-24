@@ -35,21 +35,24 @@ class Classifier_CNN:
 
         conv2 = keras.layers.Conv1D(filters=12,kernel_size=7,padding=padding,activation='sigmoid')(conv1)
         conv2 = keras.layers.AveragePooling1D(pool_size=3)(conv2)
+        
+        conv2 = keras.layers.Conv1D(filters=12,kernel_size=7,padding=padding,activation='sigmoid')(conv1)
+        conv2 = keras.layers.AveragePooling1D(pool_size=3)(conv2)
 
         flatten_layer = keras.layers.Flatten()(conv2)
 
-        output_layer = keras.layers.Dense(units=nb_classes,activation='sigmoid')(flatten_layer)
+        output_layer = keras.layers.Dense(units=nb_classes,activation='softmax')(flatten_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(),
+        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(learning_rate=0.0001),
                       metrics=['accuracy'])
 
         file_path = self.output_directory + 'best_model.hdf5'
 
-        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='loss',
+        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
                                                            save_best_only=True)
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=100)
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005, start_from_epoch=100)
 
         self.callbacks = [model_checkpoint, early_stopping]
 
@@ -61,8 +64,8 @@ class Classifier_CNN:
             exit()
 
         # x_val and y_val are only used to monitor the test loss and NOT for training
-        mini_batch_size = 128
-        nb_epochs = 2000
+        mini_batch_size = 16
+        nb_epochs = 1000
 
         start_time = time.time()
 
