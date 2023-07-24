@@ -19,18 +19,12 @@ Now [InceptionTime](https://github.com/hfawaz/InceptionTime) is included in the 
 * [h5py](http://docs.h5py.org/en/latest/build.html)
 * [keras_contrib](https://www.github.com/keras-team/keras-contrib.git)
 
+## Dataset:
+
+Our single cell time-series dataset is available [here](https://nc.ek-cer.hu/index.php/s/wqE3LHxZdCbsngz).
+
 ## Reference
 
-If you re-use this work, please cite the original DL-4-TSC repository:
+If you re-use our work or the dataset, please cite:
 
-```
-@article{IsmailFawaz2018deep,
-  Title                    = {Deep learning for time series classification: a review},
-  Author                   = {Ismail Fawaz, Hassan and Forestier, Germain and Weber, Jonathan and Idoumghar, Lhassane and Muller, Pierre-Alain},
-  journal                  = {Data Mining and Knowledge Discovery},
-  Year                     = {2019},
-  volume                   = {33},
-  number                   = {4},
-  pages                    = {917--963},
-}
-```
+and also cite the original DL-4-TSC paper if you use the time-series classfication codebase.
