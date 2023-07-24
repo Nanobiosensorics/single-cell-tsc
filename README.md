@@ -34,8 +34,3 @@ If you re-use this work, please cite the original DL-4-TSC repository:
   pages                    = {917--963},
 }
 ```
-## Acknowledgement
-
-We would like to thank the providers of the [UCR/UEA archive](http://timeseriesclassification.com/TSC.zip). 
-We would also like to thank NVIDIA Corporation for the Quadro P6000 grant and the Mésocentre of Strasbourg for providing access to the cluster.
-We would also like to thank [François Petitjean](https://www.francois-petitjean.com/) and [Charlotte Pelletier](https://sites.google.com/site/charpelletier/) for the fruitful discussions, their feedback and comments while writing this paper.
