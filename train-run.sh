@@ -3,8 +3,7 @@
 SRC_PATH=$1
 RESULT_PATH=$2
 
-# declare -a arr=("hela-mdamb231-mcf7-lclc" "mdamb231-mcf7" "mdamb231-mcf7-lclc" "mdamb231-mcf7-hela" "preo-hela-lclc" "preo-hela-mdamb231-mcf7-lclc" "preo-hela" "hela-breastcancer-lclc" "breastcancer-hela" "preo-hela-breastcancer-lclc")
-declare -a arr=( "breastcancer-hela" "mdamb231-mcf7-hela" "preo-hela-mdamb231-mcf7-lclc" "preo-hela-breastcancer-lclc" "hela-mdamb231-mcf7-lclc" "hela-breastcancer-lclc" "mdamb231-mcf7" "mdamb231-mcf7-lclc" )
+declare -a arr=("hela-mdamb231-mcf7-lclc" "mdamb231-mcf7" "mdamb231-mcf7-lclc" "preo-hela-lclc" "preo-hela-mdamb231-mcf7-lclc" "preo-hela" "hela-breastcancer-lclc" "breastcancer-lclc" "preo-hela-breastcancer-lclc")
 
 for i in "${arr[@]}"
 do
