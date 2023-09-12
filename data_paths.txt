@@ -1,0 +1,16 @@
+/media/balint/Backup1/data/fibronectin/20210526_LCLC_fn/eval/LCLC_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210526_MDAMB231_fn/eval/MDAMB231_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210526_MCF7_fn/eval/MCF7_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210527_H838_fn/eval/H838_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210607_H838_LCLC_fn/eval/LCLC_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210607_H838_LCLC_fn/eval/H838_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210608_MDAMB231_MCF7_fn/eval/MDAMB231_max_signals.csv
+/media/balint/Backup1/data/fibronectin/20210608_MDAMB231_MCF7_fn/eval/MCF7_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20191204_fibro_Hela_Preo/eval/HeLa_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20191204_fibro_Hela_Preo/eval/Preo_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20191210_fibro_Hela_Preo/eval/HeLa_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20191210_fibro_Hela_Preo/eval/Preo_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20191211_fibro_Hela_Preo/eval/HeLa_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20191211_fibro_Hela_Preo/eval/Preo_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20200127_fibro_Hela_Preo/eval/HeLa_max_signals.csv
+/media/balint/Backup1/data/fibronectin/etc/20200127_fibro_Hela_Preo/eval/Preo_max_signals.csv
