@@ -176,7 +176,7 @@ def run(args):
             print('Already done')
         else:
             create_directory(output_directory)
-            dataset = create_dataset(data_path, args.cell_types, args.time * 9)
+            dataset = create_dataset(data_path, args.cell_types, int(args.time * 60 / 9))
             fit_classifier(dataset, classifier_name, output_directory)
             print('DONE')
     
