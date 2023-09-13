@@ -3,6 +3,7 @@ import numpy as np
 import random
 import csv
 from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
 from sklearn.preprocessing import StandardScaler
 
 def repeat_list_to_length(lst, desired_length):
@@ -20,7 +21,8 @@ def split_dataset(datasets, types, val_split=.2, upsample=True):
         shuffled_indices = np.random.permutation(len(s))
         train_indices, test_indices = train_test_split(shuffled_indices, test_size=val_split, random_state=42)
         train = list(np.array(s)[train_indices])
-        train_extended = repeat_list_to_length(train, max_len) if upsample else train
+        # train_extended = repeat_list_to_length(train, max_len) if upsample else train
+        train_extended = resample(train, replace=True, n_samples=max_len, random_state=42) if upsample else train
         X_train.extend(train_extended)
         y_train.extend([t] * len(train_extended))
         X_test.extend(list(np.array(s)[test_indices]))
