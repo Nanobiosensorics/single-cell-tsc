@@ -1,28 +1,18 @@
-from utils.utils import generate_results_csv
 from utils.utils import create_directory
-from utils.utils import read_dataset
-from utils.utils import transform_mts_to_ucr_format
-from utils.utils import visualize_filter
-from utils.utils import viz_for_survey_paper
 from utils.utils import viz_cam
+from data.load import create_dataset
 import argparse
 import os
 import numpy as np
 import pandas as pd
-import sys
 import sklearn
-import utils
-from utils.constants import CLASSIFIERS
-from utils.constants import ARCHIVE_NAMES
-from utils.constants import ITERATIONS
-from utils.utils import read_all_datasets
 from utils.utils import plot_conf_matrix
 from sklearn.model_selection import StratifiedKFold
 
 def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, output_directory):
-    x_train = datasets_dict[dataset_name][0]
+    X_train = datasets_dict[dataset_name][0]
     y_train = datasets_dict[dataset_name][1]
-    x_test = datasets_dict[dataset_name][2]
+    X_test = datasets_dict[dataset_name][2]
     y_test = datasets_dict[dataset_name][3]
     labels = {}
     
@@ -30,7 +20,7 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         labels = list(datasets_dict[dataset_name][4].keys())
     print(labels)
     
-    x_data = np.vstack((x_train, x_test))
+    x_data = np.vstack((X_train, X_test))
     y_data = np.concatenate((y_train, y_test))
     nb_classes = len(np.unique(y_data))
 
@@ -39,8 +29,8 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=52)
     
     for n, (tr_idx, ts_idx) in enumerate(skf.split(x_data, y_data)):
-        x_train, y_train = x_data[tr_idx], y_data[tr_idx]
-        x_test, y_test = x_data[ts_idx], y_data[ts_idx] 
+        X_train, y_train = x_data[tr_idx], y_data[tr_idx]
+        X_test, y_test = x_data[ts_idx], y_data[ts_idx] 
         
         
         # transform the labels from integers to one hot vectors
@@ -52,21 +42,21 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         # save orignal y because later we will use binary
         y_true = np.argmax(y_test, axis=1)
 
-        if len(x_train.shape) == 2:  # if univariate
+        if len(X_train.shape) == 2:  # if univariate
             # add a dimension to make it multivariate with one dimension 
-            x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
-            x_test = x_test.reshape((x_test.shape[0], x_test.shape[1], 1))
+            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+            X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
         
         target_dir = os.path.join(output_directory, f'cv_{n}') + '/'
         
         create_directory(target_dir)
 
-        input_shape = x_train.shape[1:]
+        input_shape = X_train.shape[1:]
         classifier = create_classifier(classifier_name, input_shape, nb_classes, target_dir)
 
-        classifier.fit(x_train, y_train, x_test, y_test, y_true)
+        classifier.fit(X_train, y_train, X_test, y_test, y_true)
         
-        y_pred = classifier.predict(x_test, y_true, x_train, y_train, y_test, return_df_metrics = False)
+        y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
         y_pred = np.argmax(y_pred, axis=1)
         y_true_labels = [ labels[i] for i in y_true ]
         y_pred_labels = [ labels[i] for i in y_pred ]
@@ -76,19 +66,13 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         
         plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
 
-def fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory):
-    x_train = datasets_dict[dataset_name][0]
-    y_train = datasets_dict[dataset_name][1]
-    x_test = datasets_dict[dataset_name][2]
-    y_test = datasets_dict[dataset_name][3]
-    labels = {}
+def fit_classifier(dataset, classifier_name, output_directory):
+    X_train, y_train, X_test, y_test, (labels, classes) = dataset
     
-    if len(datasets_dict[dataset_name]) > 4:
-        labels = list(datasets_dict[dataset_name][4].keys())
-    print(labels)
-    nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
+    print(labels, classes)
+    nb_classes = len(classes)
 
-    # transform the labels from integers to one hot vectors
+    # # transform the labels from integers to one hot vectors
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
     y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
@@ -97,25 +81,24 @@ def fit_classifier(datasets_dict, dataset_name, classifier_name, output_director
     # save orignal y because later we will use binary
     y_true = np.argmax(y_test, axis=1)
 
-    if len(x_train.shape) == 2:  # if univariate
+    if len(X_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension 
-        x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
-        x_test = x_test.reshape((x_test.shape[0], x_test.shape[1], 1))
+        X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+        X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
 
-    input_shape = x_train.shape[1:]
+    input_shape = X_train.shape[1:]
     classifier = create_classifier(classifier_name, input_shape, nb_classes, output_directory)
 
-    classifier.fit(x_train, y_train, x_test, y_test, y_true)
+    classifier.fit(X_train, y_train, X_test, y_test, y_true)
     
-    y_pred = classifier.predict(x_test, y_true, x_train, y_train, y_test, return_df_metrics = False)
+    y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
     y_pred = np.argmax(y_pred, axis=1)
-    y_true_labels = [ labels[i] for i in y_true ]
-    y_pred_labels = [ labels[i] for i in y_pred ]
-    
+    # y_true_labels = [ labels[i] for i in y_true ]
+    # y_pred_labels = [ labels[i] for i in y_pred ]
     true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
     true_pred_values.to_csv(output_directory + "true-pred-values.csv", index=False)
     
-    plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
+    # plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
 
 
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=True):
@@ -160,55 +143,30 @@ def run(args):
     data_path = args.src_path
     dest_path = args.dst_path
     if args.mode == 'all':
-        dataset_name = data_path.strip().split('/')[-2]
-        iter_cnt = 3 if args.iter_cnt is None else args.iter_cnt
-        print('iters ', iter_cnt)
+        dataset = create_dataset(data_path, args.cell_types, args.time * 9)
         for classifier_name in ['cnn', 'fcn', 'mlp', 'resnet', 'mcdcnn', 'inception']:
             print('classifier_name', classifier_name)
+            output_directory = os.path.join(dest_path, classifier_name, '-'.join([*args.cell_types]), str(args.time)) + '/'
 
-            datasets_dict = read_all_datasets(data_path)
-            for i in range(iter_cnt):
-                
-                output_directory = os.path.join(dest_path, classifier_name, dataset_name + f'_itr_{i}', '')
+            print(output_directory)
 
-                print('dataset_name: ', dataset_name, output_directory)
+            create_directory(output_directory)
+            
+            # if args.validation is not None:
+            #     if args.validation == 'cross_val':
+            #         fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, output_directory)
+            #     else:
+                    # fit_classifier(dataset, classifier_name, output_directory)
+            # else:
+            fit_classifier(dataset, classifier_name, output_directory)
 
-                create_directory(output_directory)
-                
-                if args.validation is not None:
-                    if args.validation == 'cross_val':
-                        fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, output_directory)
-                    else:
-                        fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
-                else:
-                    fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
-
-                print('DONE')
-                
-                # the creation of this directory means
-                create_directory(output_directory + '/DONE')
-
-    # # elif sys.argv[1] == 'transform_mts_to_ucr_format':
-    # #     transform_mts_to_ucr_format()
-    # # elif sys.argv[1] == 'visualize_filter':
-    # #     visualize_filter(root_dir)
-    # # elif sys.argv[1] == 'viz_for_survey_paper':
-    # #     viz_for_survey_paper(root_dir)
+            print('DONE')
     elif args.mode == 'viz_cam':
         viz_cam(args.src_path, args.dst_path)
-    # # elif sys.argv[1] == 'generate_results_csv':
-    # #     res = generate_results_csv('results.csv', root_dir)
-    # #     print(res.to_string())
     elif args.mode == 'single':
-        # this is the code used to launch an experiment on a dataset
-        dataset_name = data_path.strip().split('/')[-2]
         classifier_name = args.classifier
-            
-        output_directory = os.path.join(dest_path, classifier_name, dataset_name, '')
-        
-        create_directory(output_directory)
-
-        test_dir_df_metrics = output_directory + 'df_metrics.csv'
+        output_directory = os.path.join(dest_path, classifier_name, '-'.join([*args.cell_types]), str(args.time)) + '/'
+        test_dir_df_metrics = os.path.join(output_directory, 'df_metrics.csv')
 
         print('Method: ', classifier_name)
         
@@ -217,16 +175,10 @@ def run(args):
         if os.path.exists(test_dir_df_metrics):
             print('Already done')
         else:
-
             create_directory(output_directory)
-            datasets_dict = read_dataset(data_path)
-
-            fit_classifier(datasets_dict, dataset_name, classifier_name, output_directory)
-
+            dataset = create_dataset(data_path, args.cell_types, args.time * 9)
+            fit_classifier(dataset, classifier_name, output_directory)
             print('DONE')
-
-            # the creation of this directory means
-            create_directory(output_directory + '/DONE')
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DL-4-TS')
@@ -237,6 +189,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--mode', type=str, 
                         choices=['single', 'all', 'transform_mts_to_ucr_format', 'visualize_filter', 
                                  'viz_for_survey_paper', 'viz_cam', 'generate_results'], required=True)
-    parser.add_argument('-i', '--iter_cnt', type=int, required=False)
+    parser.add_argument('-t', '--time', type=int, required=True)
+    parser.add_argument('-tp','--cell_types', type=str, required=True)
     args = parser.parse_args()
+    args.cell_types = sorted(args.cell_types.split('-'))
+    print(args.cell_types)
     run(args)

@@ -116,7 +116,7 @@ class Classifier_RESNET:
         model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
                                                            save_best_only=True)
         
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005, start_from_epoch=100)
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005)
 
         self.callbacks = [reduce_lr, model_checkpoint, early_stopping]
 
@@ -128,7 +128,7 @@ class Classifier_RESNET:
             exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
         batch_size = 32
-        nb_epochs = 1000
+        nb_epochs = 100
 
         mini_batch_size = int(min(x_train.shape[0] / 10, batch_size))
 

@@ -62,7 +62,7 @@ class Classifier_ENCODER:
         model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path,
                                                            monitor='loss', save_best_only=True)
 
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005, start_from_epoch=100)
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.0005)
 
         self.callbacks = [model_checkpoint, early_stopping]
 
@@ -74,7 +74,7 @@ class Classifier_ENCODER:
             exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
         batch_size = 128
-        nb_epochs = 1000
+        nb_epochs = 500
 
         mini_batch_size = batch_size
 

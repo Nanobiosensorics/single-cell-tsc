@@ -11,7 +11,7 @@ from utils.utils import save_test_duration
 class Classifier_INCEPTION:
 
     def __init__(self, output_directory, input_shape, nb_classes, verbose=False, build=True, batch_size=32, lr=0.0001,
-                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=1500):
+                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=500):
 
         self.output_directory = output_directory
 
@@ -103,7 +103,7 @@ class Classifier_INCEPTION:
         model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
                                                            save_best_only=True)
         
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005, start_from_epoch=50)
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005)
 
         self.callbacks = [reduce_lr, model_checkpoint, early_stopping]
 

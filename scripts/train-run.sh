@@ -3,22 +3,13 @@
 SRC_PATH=$1
 RESULT_PATH=$2
 
-declare -a arr=("hela-mdamb231-mcf7-lclc" "mdamb231-mcf7" "mdamb231-mcf7-lclc" "preo-hela-lclc" "preo-hela-mdamb231-mcf7-lclc" "preo-hela" "hela-breastcancer-lclc" "breastcancer-lclc" "preo-hela-breastcancer-lclc")
-
-for i in "${arr[@]}"
-do
-    echo -p $SRC_PATH/0.5hrs/$i/sampled/train-test/ -d $RESULT_PATH/0.5hrs/$i/
-    python3 main.py -p $SRC_PATH/0.5hrs/$i/sampled/train-test/ -d $RESULT_PATH/0.5hrs/$i/ -m all -i 1 -v cross_val
-
-    echo -p $SRC_PATH/1hrs/$i/sampled/train-test/ -d $RESULT_PATH/1hrs/$i/
-    python3 main.py -p $SRC_PATH/1hrs/$i/sampled/train-test/ -d $RESULT_PATH/1hrs/$i/ -m all -i 1 -v cross_val
-
-    echo -p $SRC_PATH/1.5hrs/$i/sampled/train-test/ -d $RESULT_PATH/1.5hrs/$i/
-    python3 main.py -p $SRC_PATH/1.5hrs/$i/sampled/train-test/ -d $RESULT_PATH/1.5hrs/$i/ -m all -i 1 -v cross_val
-
-    echo -p $SRC_PATH/2hrs/$i/sampled/train-test/ -d $RESULT_PATH/2hrs/$i/
-    python3 main.py -p $SRC_PATH/2hrs/$i/sampled/train-test/ -d $RESULT_PATH/2hrs/$i/ -m all -i 1 -v cross_val
-
-    echo -p $SRC_PATH/2.5hrs/$i/sampled/train-test/ -d $RESULT_PATH/2.5hrs/$i/
-    python3 main.py -p $SRC_PATH/2.5hrs/$i/sampled/train-test/ -d $RESULT_PATH/2.5hrs/$i/ -m all -i 1 -v cross_val
-done
+declare -a cell_types=("hela-mdamb231-mcf7-lclc" "mdamb231-mcf7" "mdamb231-mcf7-lclc" "preo-hela-lclc" "preo-hela-mdamb231-mcf7-lclc" "preo-hela" "hela-breastcancer-lclc" "breastcancer-lclc" "preo-hela-breastcancer-lclc")
+declare -a times=(30 60 90 120)
+# for i in "${cell_types[@]}"
+# do
+    for j in "${times[@]}"
+    do
+        # echo -p $SRC_PATH -d $RESULT_PATH -m all -t $j -tp $i
+        python3 main.py -p $SRC_PATH -d $RESULT_PATH -m single -t $j -tp "preo-hela-mdamb231-mcf7-lclc" -c cnn
+    done
+# done

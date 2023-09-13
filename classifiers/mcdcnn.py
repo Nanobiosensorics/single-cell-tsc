@@ -67,7 +67,7 @@ class Classifier_MCDCNN:
         model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
                                                            save_best_only=True)
         
-        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005, start_from_epoch=100)
+        early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, mode='min', min_delta=0.005)
 
         self.callbacks = [model_checkpoint, early_stopping]
 
@@ -88,7 +88,7 @@ class Classifier_MCDCNN:
             print('error')
             exit()
         mini_batch_size = 32
-        nb_epochs = 1000
+        nb_epochs = 500
 
         # x_train, x_val, y_train, y_val = \
         #     train_test_split(x, y, test_size=0.33)
