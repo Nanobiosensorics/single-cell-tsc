@@ -1,6 +1,6 @@
 from utils.utils import create_directory
 from utils.utils import viz_cam
-from data.load import create_dataset
+from data.load import load_dataset
 import argparse
 import os
 import numpy as np
@@ -70,7 +70,7 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         # plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
 
 def fit_classifier(dataset, classifier_name, output_directory):
-    X_train, y_train, X_test, y_test, (labels, classes) = dataset
+    X_train, y_train, X_test, y_test, (labels, classes), scaler = dataset
     
     print(labels, classes)
     nb_classes = len(classes)
@@ -151,7 +151,7 @@ def run(args):
     data_path = args.src_path
     dest_path = args.dst_path
     if args.mode == 'all':
-        dataset = create_dataset(data_path, args.cell_types, args.time * 9)
+        dataset = create_dataset(data_path, args.cell_types, int(args.time * 60 / 9))
         for classifier_name in ['cnn', 'fcn', 'mlp', 'resnet', 'mcdcnn', 'inception']:
             print('classifier_name', classifier_name)
             output_directory = os.path.join(dest_path, classifier_name, '-'.join([*args.cell_types]), str(args.time)) + '/'
@@ -184,7 +184,7 @@ def run(args):
             print('Already done')
         else:
             create_directory(output_directory)
-            dataset = create_dataset(data_path, args.cell_types, int(args.time * 60 / 9))
+            dataset = load_dataset(os.path.join(data_path, str(args.time)), resample=True, scale=True)
             fit_classifier(dataset, classifier_name, output_directory)
             print('DONE')
     

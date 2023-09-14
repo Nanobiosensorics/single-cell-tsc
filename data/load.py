@@ -26,6 +26,8 @@ def load_dataset(path, resample=True, scale=True):
     random.shuffle(train)
     X_train, y_train = zip(*train)
     
+    scaler = None
+    
     if scale:
         scaler = StandardScaler()
         scaler.fit(X_train)
@@ -33,7 +35,5 @@ def load_dataset(path, resample=True, scale=True):
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
         
-        return *list(map(np.array, [X_train, y_train, X_test, y_test])), (tags, labels), scaler
-    
-    return *list(map(np.array, [X_train, y_train, X_test, y_test])), (tags, labels)
+    return *list(map(np.array, [X_train, y_train, X_test, y_test])), (tags, labels), scaler
         
