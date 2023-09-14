@@ -32,6 +32,7 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         X_train, y_train = x_data[tr_idx], y_data[tr_idx]
         X_test, y_test = x_data[ts_idx], y_data[ts_idx] 
         
+        y_true = y_test.copy()
         
         # transform the labels from integers to one hot vectors
         enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
@@ -40,7 +41,7 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
 
         # save orignal y because later we will use binary
-        y_true = np.argmax(y_test, axis=1)
+        # y_true = np.argmax(y_test, axis=1)
 
         if len(X_train.shape) == 2:  # if univariate
             # add a dimension to make it multivariate with one dimension 
@@ -61,16 +62,20 @@ def fit_classifier_cross_val(datasets_dict, dataset_name, classifier_name, outpu
         y_true_labels = [ labels[i] for i in y_true ]
         y_pred_labels = [ labels[i] for i in y_pred ]
         
-        true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
-        true_pred_values.to_csv(target_dir + "true-pred-values.csv", index=False)
+        test_output = pd.DataFrame(np.hstack([y_true, y_pred, X_test]))
         
-        plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
+        # true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
+        # true_pred_values.to_csv(target_dir + "true-pred-values.csv", index=False)
+        
+        # plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
 
 def fit_classifier(dataset, classifier_name, output_directory):
     X_train, y_train, X_test, y_test, (labels, classes) = dataset
     
     print(labels, classes)
     nb_classes = len(classes)
+    
+    y_true = y_test.copy()
 
     # # transform the labels from integers to one hot vectors
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
@@ -79,7 +84,7 @@ def fit_classifier(dataset, classifier_name, output_directory):
     y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
 
     # save orignal y because later we will use binary
-    y_true = np.argmax(y_test, axis=1)
+    # y_true = np.argmax(y_test, axis=1)
 
     if len(X_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension 
@@ -93,12 +98,15 @@ def fit_classifier(dataset, classifier_name, output_directory):
     
     y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
     y_pred = np.argmax(y_pred, axis=1)
-    # y_true_labels = [ labels[i] for i in y_true ]
-    # y_pred_labels = [ labels[i] for i in y_pred ]
-    true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
-    true_pred_values.to_csv(output_directory + "true-pred-values.csv", index=False)
+    y_true_labels = [ labels[i] for i in y_true ]
+    y_pred_labels = [ labels[i] for i in y_pred ]
+    # true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
+    # true_pred_values.to_csv(output_directory + "true-pred-values.csv", index=False)
     
-    # plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
+    test_output = pd.DataFrame(np.hstack([y_true.reshape(-1, 1), y_pred.reshape(-1, 1), X_test.squeeze()]))
+    test_output.to_csv(os.path.join(output_directory, 'test_output.csv'), header=False, index=False)
+    
+    plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
 
 
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=True):
