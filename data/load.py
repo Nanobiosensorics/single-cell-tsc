@@ -1,69 +1,30 @@
 import os
 import numpy as np
+import pandas as pd
 import random
-import csv
-from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
-from collections import Counter
 
-def repeat_list_to_length(lst, desired_length):
-    repeated_list = []
-    while len(repeated_list) < desired_length:
-        repeated_list.extend(lst)
-    return repeated_list[:desired_length]
-
-def split_dataset(datasets, types, val_split=.2, sampling_strategy='none'):
-    X_train, y_train, X_test, y_test = [], [], [], []
-    label_counts = list(map(len, datasets))
-    print(label_counts)
+def load_dataset(path, resample=True, scale=True):
+    X_train = np.array(pd.read_csv(os.path.join(path, 'X_train.csv'), header=None))
+    y_train = np.array(pd.read_csv(os.path.join(path, 'y_train.csv'), header=None))
+    X_test = np.array(pd.read_csv(os.path.join(path, 'X_test.csv'), header=None))
+    y_test = np.array(pd.read_csv(os.path.join(path, 'y_test.csv'), header=None))
+    dictionary = pd.read_csv(os.path.join(path, 'dictionary.csv'), header=None)
+    tags, labels = list(dictionary.iloc[:, 0]), list(dictionary.iloc[:, 1])
     
-    for t, s in zip(types, datasets):
-        shuffled_indices = np.random.permutation(len(s))
-        train_indices, test_indices = train_test_split(shuffled_indices, test_size=val_split, random_state=42)
-        train = list(np.array(s)[train_indices])
-        if sampling_strategy == 'min':
-            train_extended = resample(train, replace=True, n_samples=int(min(label_counts) * (1-val_split)), random_state=42)
-        elif sampling_strategy == 'max':
-            train_extended = resample(train, replace=True, n_samples=int(max(label_counts) * (1-val_split)), random_state=42)
-        else:
-            train_extended = train
-        X_train.extend(train_extended)
-        y_train.extend([t] * len(train_extended))
-        X_test.extend(list(np.array(s)[test_indices]))
-        y_test.extend([t] * len(test_indices))
-
-    if sampling_strategy == 'smote':
+    print(f"train shape: {X_train.shape}, test shape: {X_test.shape}")
+    
+    if resample:
         sm = SMOTE(random_state=42)
         X_train, y_train = sm.fit_resample(X_train, y_train)
-        
-    print(Counter(y_train))
-
+    
+    print('train:', list(zip(np.unique(y_train, return_counts=True))))
+    print('test:', list(zip(np.unique(y_test, return_counts=True))))
+    
     train = list(zip(X_train, y_train))
     random.shuffle(train)
     X_train, y_train = zip(*train)
-    return list(map(np.array, [X_train, y_train, X_test, y_test])) 
-        
-def create_dataset(path, cell_types, time, val_split=.2, sampling_strategy='none', scale=True):
-    tags = sorted(cell_types)
-    labels = list(range(len(tags)))
-    datasets = []
-    for tp in tags:
-        data = []
-        res_max_path = os.path.join(path, f'{tp}_max_signals.csv')
-        if os.path.exists(res_max_path):
-            fp = open(res_max_path, 'r')
-            reader = csv.reader(fp)
-            for line in reader:
-                if len(line) >= time:
-                    line = list(map(float, line))[:time]
-                    data.append(line)
-        if len(data) == 0 or not os.path.exists(res_max_path):
-            raise ValueError(f'Data does not exist for cell type {tp}')
-        datasets.append(data)
-    
-    X_train, y_train, X_test, y_test = split_dataset(datasets, labels, val_split, sampling_strategy)
     
     if scale:
         scaler = StandardScaler()
@@ -71,7 +32,11 @@ def create_dataset(path, cell_types, time, val_split=.2, sampling_strategy='none
         
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
-        print(f"train shape: {X_train.shape}, test shape: {X_test.shape}")
+        
+        return *list(map(np.array, [X_train, y_train, X_test, y_test])), (tags, labels), scaler
     
-    return X_train, y_train, X_test, y_test, (tags, labels)
+    return *list(map(np.array, [X_train, y_train, X_test, y_test])), (tags, labels)
+        
+    
+    
     
