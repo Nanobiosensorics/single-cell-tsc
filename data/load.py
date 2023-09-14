@@ -7,9 +7,9 @@ from imblearn.over_sampling import SMOTE
 
 def load_dataset(path, resample=True, scale=True):
     X_train = np.array(pd.read_csv(os.path.join(path, 'X_train.csv'), header=None))
-    y_train = np.array(pd.read_csv(os.path.join(path, 'y_train.csv'), header=None))
+    y_train = np.array(pd.read_csv(os.path.join(path, 'y_train.csv'), header=None)).squeeze()
     X_test = np.array(pd.read_csv(os.path.join(path, 'X_test.csv'), header=None))
-    y_test = np.array(pd.read_csv(os.path.join(path, 'y_test.csv'), header=None))
+    y_test = np.array(pd.read_csv(os.path.join(path, 'y_test.csv'), header=None)).squeeze()
     dictionary = pd.read_csv(os.path.join(path, 'dictionary.csv'), header=None)
     tags, labels = list(dictionary.iloc[:, 0]), list(dictionary.iloc[:, 1])
     
@@ -37,6 +37,3 @@ def load_dataset(path, resample=True, scale=True):
     
     return *list(map(np.array, [X_train, y_train, X_test, y_test])), (tags, labels)
         
-    
-    
-    
