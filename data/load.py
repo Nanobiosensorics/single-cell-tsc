@@ -5,6 +5,8 @@ import csv
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 from sklearn.preprocessing import StandardScaler
+from imblearn.over_sampling import SMOTE
+from collections import Counter
 
 def repeat_list_to_length(lst, desired_length):
     repeated_list = []
@@ -12,28 +14,38 @@ def repeat_list_to_length(lst, desired_length):
         repeated_list.extend(lst)
     return repeated_list[:desired_length]
 
-def split_dataset(datasets, types, val_split=.2, upsample=True):
+def split_dataset(datasets, types, val_split=.2, sampling_strategy='none'):
     X_train, y_train, X_test, y_test = [], [], [], []
-    print(list(map(len, datasets)))
-    max_len = int(max(list(map(len, datasets))) * (1 - val_split))
+    label_counts = list(map(len, datasets))
+    print(label_counts)
     
     for t, s in zip(types, datasets):
         shuffled_indices = np.random.permutation(len(s))
         train_indices, test_indices = train_test_split(shuffled_indices, test_size=val_split, random_state=42)
         train = list(np.array(s)[train_indices])
-        # train_extended = repeat_list_to_length(train, max_len) if upsample else train
-        train_extended = resample(train, replace=True, n_samples=max_len, random_state=42) if upsample else train
+        if sampling_strategy == 'min':
+            train_extended = resample(train, replace=True, n_samples=int(min(label_counts) * (1-val_split)), random_state=42)
+        elif sampling_strategy == 'max':
+            train_extended = resample(train, replace=True, n_samples=int(max(label_counts) * (1-val_split)), random_state=42)
+        else:
+            train_extended = train
         X_train.extend(train_extended)
         y_train.extend([t] * len(train_extended))
         X_test.extend(list(np.array(s)[test_indices]))
         y_test.extend([t] * len(test_indices))
+
+    if sampling_strategy == 'smote':
+        sm = SMOTE(random_state=42)
+        X_train, y_train = sm.fit_resample(X_train, y_train)
+        
+    print(Counter(y_train))
 
     train = list(zip(X_train, y_train))
     random.shuffle(train)
     X_train, y_train = zip(*train)
     return list(map(np.array, [X_train, y_train, X_test, y_test])) 
         
-def create_dataset(path, cell_types, time, val_split=.2, upsample=True, scale=True):
+def create_dataset(path, cell_types, time, val_split=.2, sampling_strategy='none', scale=True):
     tags = sorted(cell_types)
     labels = list(range(len(tags)))
     datasets = []
@@ -51,7 +63,7 @@ def create_dataset(path, cell_types, time, val_split=.2, upsample=True, scale=Tr
             raise ValueError(f'Data does not exist for cell type {tp}')
         datasets.append(data)
     
-    X_train, y_train, X_test, y_test = split_dataset(datasets, labels, val_split, upsample)
+    X_train, y_train, X_test, y_test = split_dataset(datasets, labels, val_split, sampling_strategy)
     
     if scale:
         scaler = StandardScaler()
