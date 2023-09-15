@@ -14,3 +14,7 @@
 /media/balint/Backup1/data/fibronectin/etc/20191211_fibro_Hela_Preo/eval/Preo_max_signals.csv
 /media/balint/Backup1/data/fibronectin/etc/20200127_fibro_Hela_Preo/eval/HeLa_max_signals.csv
 /media/balint/Backup1/data/fibronectin/etc/20200127_fibro_Hela_Preo/eval/Preo_max_signals.csv
+/media/balint/Backup1/data/both/20200722_Preo_Hela_fn/eval/HeLa_max_signals.csv
+/media/balint/Backup1/data/both/20200722_Preo_Hela_fn/eval/Preo_max_signals.csv
+/media/balint/Backup1/data/both/20200729_Preo_Hela_fn/eval/HeLa_max_signals.csv
+/media/balint/Backup1/data/both/20200729_Preo_Hela_fn/eval/Preo_max_signals.csv
