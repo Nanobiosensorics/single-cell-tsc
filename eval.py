@@ -8,11 +8,18 @@ def run(data_path, result_path, color_path):
     print(data_path, result_path, color_path)
     result_paths = [ { 'name': name, 'path': os.path.join(result_path, name)} 
                     for name in os.listdir(result_path) if os.path.isdir(os.path.join(result_path, name))]
-    experiments = [ {'name': result['name'],'path': result['path'], 
-                     'experiments': sorted([os.path.join(result['path'], name) 
-                                            for name in os.listdir(result['path']) if os.path.isdir(os.path.join(result['path'], name))])} for result in result_paths]
+    experiments = []
+    for result in result_paths:
+        obj = result.copy()
+        obj['experiments'] = sorted([os.path.join(result['path'], name) 
+                                            for name in os.listdir(result['path']) if os.path.isdir(os.path.join(result['path'], name))])
+        if len(obj['experiments']) == 0:
+            obj['experiments'] = [result['path']]
+        experiments.append(obj)
 
     labels, label_ids = get_dictionary(data_path)
+    
+    print(labels, label_ids)
     x_data, y_data, data_labels = get_data(data_path, labels)
     x_test, y_test, test_labels = get_test(data_path, labels)
     cmap, names = get_colors(color_path, labels)
