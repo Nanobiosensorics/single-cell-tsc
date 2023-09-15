@@ -46,7 +46,7 @@ class Classifier_MLP:
 		model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adadelta(learning_rate=0.001),
 			metrics=['accuracy'])
 
-		reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=200, min_lr=0.0001)
+		reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=20, min_lr=0.0001)
 
 		file_path = self.output_directory+'best_model.hdf5' 
 

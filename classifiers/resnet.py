@@ -109,7 +109,7 @@ class Classifier_RESNET:
         model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(learning_rate=0.0001),
                       metrics=['accuracy'])
 
-        reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=50, min_lr=0.0001)
+        reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=0.00001)
 
         file_path = self.output_directory + 'best_model.hdf5'
 
@@ -128,7 +128,7 @@ class Classifier_RESNET:
             exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
         batch_size = 32
-        nb_epochs = 100
+        nb_epochs = 500
 
         mini_batch_size = int(min(x_train.shape[0] / 10, batch_size))
 
