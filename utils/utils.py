@@ -620,23 +620,12 @@ def viz_for_survey_paper(root_dir, filename='results-ucr-mts.csv'):
     viz_plot(root_dir, df)
 
 
-def viz_cam(data_path, model_path, labels):
+def viz_cam(dataset, model_path):
     import tensorflow.keras as keras
     import sklearn
-    classifier = 'resnet'
-    # archive_name = 'UCRArchive_2018'
-    # dataset_name = 'Coffee'
-    dataset_name = data_path.strip().split('/')[-2]
-    save_name = dataset_name
+    x_train, y_train, x_test, y_test, (labels, classes), __annotations__ = dataset
     
     max_length = 2000
-    datasets_dict = read_dataset(data_path, False)
-
-    x_train = datasets_dict[dataset_name][0]
-    y_train = datasets_dict[dataset_name][1]
-    x_test = datasets_dict[dataset_name][2]
-    y_test = datasets_dict[dataset_name][3]
-    # labels = datasets_dict[dataset_name][4]
     
     scaler = StandardScaler()
     scaler.fit(x_train)
@@ -648,7 +637,7 @@ def viz_cam(data_path, model_path, labels):
     enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
     y_train_binary = enc.transform(y_train.reshape(-1, 1)).toarray()
 
-    x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
+    C_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 
     model = keras.models.load_model(os.path.join(model_path, 'best_model.hdf5'))
 
@@ -697,13 +686,8 @@ def viz_cam(data_path, model_path, labels):
                 cas = f(x).astype(int)
                 plt.title(l)
                 plt.scatter(x=x, y=y, c=cas, cmap='magma', marker='.', s=2, vmin=0, vmax=100, linewidths=0.0)
-                if dataset_name == 'Gun_Point':
-                    if c == 1:
-                        plt.yticks([-1.0, 0.0, 1.0, 2.0])
-                    else:
-                        plt.yticks([-2, -1.0, 0.0, 1.0, 2.0])
                 count += 1
 
         cbar = plt.colorbar()
         # cbar.ax.set_yticklabels([100,75,50,25,0])
-        plt.savefig(os.path.join(model_path, f'{classifier}-cam-{save_name}-class-{str(int(c))}.png'), bbox_inches='tight', dpi=200)
+        plt.savefig(os.path.join(model_path, f'class-{l}-cam.png'), bbox_inches='tight', dpi=200)

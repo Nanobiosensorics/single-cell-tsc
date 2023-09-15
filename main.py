@@ -166,8 +166,6 @@ def run(args):
             fit_classifier(dataset, classifier_name, output_directory)
 
             print('DONE')
-    elif args.mode == 'viz_cam':
-        viz_cam(args.src_path, args.dst_path)
     elif args.mode == 'single':
         classifier_name = args.classifier
         output_directory = os.path.join(dest_path, '-'.join([*args.cell_types]), str(args.time), classifier_name) + '/'

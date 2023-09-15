@@ -2,6 +2,7 @@ import os
 from evaluation.load import get_dictionary, get_test, get_colors, get_data
 from evaluation.plots import *
 from utils.utils import viz_cam
+from data.load import load_dataset
 import argparse
 
 def run(data_path, result_path, color_path):
@@ -65,7 +66,8 @@ def run(data_path, result_path, color_path):
     for experiment in experiments:
         for exp in experiment['experiments']:
             if(any(classifier in exp for classifier in ['fcn', 'resnet', 'inception'])):
-                viz_cam(data_path, exp, names)
+                dataset = load_dataset(data_path, resample=False, scale=False)
+                viz_cam(dataset, exp)
             
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DL-4-TS-EVAL')
