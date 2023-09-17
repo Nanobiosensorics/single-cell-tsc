@@ -51,14 +51,14 @@ def generate_loss_acc_plot(filename, experiment):
     ax[1,1].set_ylim((0,1))
     plt.savefig(filename, dpi=200)
     plt.close()
-    
+
 @log
-def generate_tr_tst_plot(filename, experiments):   
+def generate_tr_tst_plot(filename, experiments):
     fig, ax = plt.subplots(1,2, figsize=(15,8))
     ax[0].set_title("Trn Accuracy")
     ax[1].set_title("Val Accuracy")
     for exp in experiments:
-    #     if exp['name'] not in ['resnet', 'fcn']: 
+    #     if exp['name'] not in ['resnet', 'fcn']:
         mx_idx = get_max_acc_experiment(exp)
         exp_hist = pd.read_csv(os.path.join(exp['experiments'][mx_idx], 'history.csv'))
         ax[0].plot(exp_hist.accuracy, label=exp['name'], alpha=.5)
@@ -91,7 +91,7 @@ def generate_tst_pred_plot(experiment, x_test, y_test, labels, cmap=None, names=
 
     for n in range(x_test.shape[0]):
         ax[y_test[n]].plot(x_test[n,:], c=cmap[y_pred[n]])
-        
+
     for i in range(label_count):
         ticks = [int(re.sub(u"\u2212", "-", i.get_text())) for i in ax[i].get_xticklabels()]
         ax[i].set_xticklabels([item * 3 for item in ticks])
@@ -116,7 +116,7 @@ def generate_preds_plot(experiment, x_test, y_test, labels, names=None):
 
     for m in range(x_test.shape[0]):
         ax[y_test[m]].plot(x_test[m, :], c=cmap[int(y_pred[m] == y_test[m])])
-        
+
     for i in range(label_count):
         ticks = [int(re.sub(u"\u2212", "-", i.get_text())) for i in ax[i].get_xticklabels()]
         ax[i].set_xticklabels([item * 3 for item in ticks])
@@ -124,8 +124,10 @@ def generate_preds_plot(experiment, x_test, y_test, labels, names=None):
     plt.savefig(os.path.join(experiment, 'tst-predictions.png'), dpi=200)
     plt.close()
 
+from scipy.stats import lognorm
+
 @log
-def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False):
+def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False, add_lines=False):
     sz = (4, 3) if small else (5,4)
     label_count = len(labels)
     if cmap is None:
@@ -139,6 +141,7 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
         bins_type.append(bins)
     bins, bin_edges = np.histogram(x_test_lst, bins=50, range=(min(x_test_lst), max(x_test_lst)),density=False)
     fig, ax = plt.subplots(figsize=sz)
+    # ax.set_ylim(0, max(bins) * 1.05)
     for m in label_ids:
         label = names[m] if names is not None else labels[m]
         ax.bar(0, 0, width=0, color=cmap[m], label=label)
@@ -147,6 +150,15 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
         for m in label_ids:
             ax.bar(l_edge, bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
             bottom += bins_type[m][n]
+    if add_lines:
+        mx = max(bins) * 0.12
+        dff = mx / (len(label_ids) + 2)
+        for i in label_ids:
+            sample = x_test[np.where(y_test == i), -1]
+            line = list(range(int(np.min(sample)), int(np.max(sample))))
+            ax.plot(line, [-((i+1) * dff)] * len(line), color=cmap[i])
+            ax.scatter([min(line), max(line)], [-((i+1) * dff), -((i+1) * dff)], color=cmap[i], s=10)
+        ax.set_ylim(-(max(bins) * .12), max(bins) * 1.05)
     ax.set_xlabel("WS(pm)", fontsize=12)
     ax.set_ylabel("Count", fontsize=12)
     plt.legend()
@@ -155,7 +167,7 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
     plt.close()
 
 @log
-def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False):
+def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False, add_lines=False):
     label_count = len(labels)
     sz = (5, label_count * 4)
     if small:
@@ -188,13 +200,23 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
             for m in label_ids_l:
                 container = ax[tag].bar(l_edge, bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
                 bottom += bins_type[m][n]
+        if add_lines:
+            mx = max(bins) * 0.12
+            dff = mx / (len(label_ids) + 2)
+            for m in label_ids:
+                sample = x_test_type_lst[np.where(y_pred_type == m)]
+                if sample.shape[0] != 0:
+                    line = list(range(int(np.min(sample)), int(np.max(sample))))
+                    ax[tag].plot(line, [-((m+1) * dff)] * len(line), color=cmap[m])
+                    ax[tag].scatter([min(line), max(line)], [-((m+1) * dff), -((m+1) * dff)], color=cmap[m], s=10)
+            ax[tag].set_ylim(-(max(bins) * .12), max(bins) * 1.05)
         ax[tag].legend()
         ax[tag].set_xlabel("WS(pm)", fontsize=12)
         ax[tag].set_ylabel("Count", fontsize=12)
     plt.tight_layout()
     plt.savefig(os.path.join(experiment, f'tst-types-hist{"(small)" if small else ""}.png'), dpi=300)
     plt.close()
-    
+
 @log
 def generate_conf_matrix(experiment, test_labels, labels, names=None):
     y_pred, pred_labels = get_predictions(experiment, labels)
@@ -204,7 +226,7 @@ def generate_conf_matrix(experiment, test_labels, labels, names=None):
     plt.tight_layout()
     plt.savefig(os.path.join(experiment, 'conf-matrix.png'), pad_inches=5, dpi=300)
     plt.close()
-    
+
 @log
 def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, names=None, small=False):
     sz = (10,10)
@@ -214,7 +236,7 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
         sz = (5,5)
         node_ratio = 1500
         edge_ratio = 20
-    
+
     _, pred_labels = get_predictions(experiment, labels)
     cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
     label_count = len(labels)
@@ -223,9 +245,9 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
         cmap = [mpl.colors.rgb2hex(cm(i)) for i in range(label_count)]
     radius = 1
     G = nx.DiGraph(edge_layout='curved')
-    
+
     text_pos = []
-    
+
     for i in label_ids:
         theta = 2 * np.pi * i / len(label_ids)
         if len(label_ids) > 2:
@@ -267,8 +289,8 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
     # Draw nodes and edges
     plt.figure(figsize=sz)
     nodes = nx.draw_networkx_nodes(
-        G, pos, 
-        node_size=node_weights, 
+        G, pos,
+        node_size=node_weights,
         node_color=node_colors,
     #     edgecolors='black'
     )
@@ -281,7 +303,7 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
         arrowstyle='-'
     )
     nx.draw_networkx_labels(
-        G, text_pos, 
+        G, text_pos,
         labels={n: label for n, label in enumerate(names if names is not None else labels)},
 
     )
