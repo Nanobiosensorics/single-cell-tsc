@@ -39,8 +39,6 @@ def fit_classifier_kfold(data_loader, classifier_name, output_directory):
         
         y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
         y_pred = np.argmax(y_pred, axis=1)
-        y_true_labels = [ labels[i] for i in y_true ]
-        y_pred_labels = [ labels[i] for i in y_pred ]
         true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
         true_pred_values.to_csv(os.path.join(target_dir, 'test_output.csv'), header=False, index=False)
         # plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
@@ -51,7 +49,7 @@ def fit_classifier(dataset, classifier_name, output_directory):
     print(labels, classes)
     nb_classes = len(classes)
     
-    y_true = y_test.copy()
+    y_true = y_test.squeeze().copy()
 
     # # transform the labels from integers to one hot vectors
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')

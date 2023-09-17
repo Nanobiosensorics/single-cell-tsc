@@ -623,7 +623,7 @@ def viz_for_survey_paper(root_dir, filename='results-ucr-mts.csv'):
 def viz_cam(dataset, model_path):
     import tensorflow.keras as keras
     import sklearn
-    x_train, y_train, x_test, y_test, (labels, classes), __annotations__ = dataset
+    x_train, y_train, x_test, y_test, (labels, classes), _ = dataset
     
     max_length = 2000
     
@@ -635,9 +635,9 @@ def viz_cam(dataset, model_path):
     # transform to binary labels
     enc = sklearn.preprocessing.OneHotEncoder()
     enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
-    y_train_binary = enc.transform(y_train.reshape(-1, 1)).toarray()
+    # y_train_binary = enc.transform(y_train.reshape(-1, 1)).toarray()
 
-    C_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
+    # C_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 
     model = keras.models.load_model(os.path.join(model_path, 'best_model.hdf5'))
 
@@ -656,8 +656,8 @@ def viz_cam(dataset, model_path):
     for l, c in zip(labels, classes):
         plt.figure()
         count = 0
-        c_x_train = x_train[np.where(y_train == c)]
-        c_x_train_norm = x_train_norm[np.where(y_train == c)]
+        c_x_train = x_train[y_train.squeeze() == c]
+        c_x_train_norm = x_train_norm[y_train.squeeze() == c]
         for rs, ts in zip(c_x_train, c_x_train_norm):
             rs = rs.reshape(1, -1, 1)
             ts = ts.reshape(1, -1, 1)
