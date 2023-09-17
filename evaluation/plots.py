@@ -14,16 +14,18 @@ import warnings
 warnings.filterwarnings("ignore")
 
 @log
-def generate_mean_plot(filename, x_data, y_data, labels, cmap, names):   
-    fig, ax = plt.subplots(figsize=(5, 4))
+def generate_mean_plot(filename, x_data, y_data, labels, cmap, names, small=False):
+    sz = (4, 3) if small else (6,5)
+    fig, ax = plt.subplots(figsize=sz)
     for l, c, n in zip(labels, cmap, names):
         avg = np.mean(np.array(x_data[np.where(y_data == l)]), axis=0)
         ax.plot(avg, label=n, c=c, linewidth=3)
     ticks = [int(re.sub(u"\u2212", "-", i.get_text())) for i in ax.get_xticklabels()]
-    ax.set_xticklabels([item * 3 for item in ticks])
-    plt.xlabel("Time(s)")
-    plt.ylabel("WS(pm)")
+    ax.set_xticklabels([int(item * 9 / 60) for item in ticks])
+    plt.xlabel("Time(min)", fontsize=12)
+    plt.ylabel("WS(pm)", fontsize=12)
     plt.legend()
+    plt.tight_layout()
     plt.savefig(filename, dpi=200)
     plt.close()
 
@@ -123,7 +125,8 @@ def generate_preds_plot(experiment, x_test, y_test, labels, names=None):
     plt.close()
 
 @log
-def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=None, names=None):
+def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False):
+    sz = (4, 3) if small else (5,4)
     label_count = len(labels)
     if cmap is None:
         cm = mpl.cm.get_cmap('Set1', label_count)
@@ -135,7 +138,7 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
         bins, bin_edges = np.histogram(x_test_type[:, -1], bins=50, range=(min(x_test_lst), max(x_test_lst)),density=False)
         bins_type.append(bins)
     bins, bin_edges = np.histogram(x_test_lst, bins=50, range=(min(x_test_lst), max(x_test_lst)),density=False)
-    fig, ax = plt.subplots(figsize=(5,4))
+    fig, ax = plt.subplots(figsize=sz)
     for m in label_ids:
         label = names[m] if names is not None else labels[m]
         ax.bar(0, 0, width=0, color=cmap[m], label=label)
@@ -144,22 +147,25 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
         for m in label_ids:
             ax.bar(l_edge, bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
             bottom += bins_type[m][n]
-    ax.set_xlabel("WS(pm)")
-    ax.set_ylabel("Count")
+    ax.set_xlabel("WS(pm)", fontsize=12)
+    ax.set_ylabel("Count", fontsize=12)
     plt.legend()
     plt.tight_layout()
     plt.savefig(filename, dpi=200)
     plt.close()
 
 @log
-def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, cmap=None, names=None):
+def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False):
     label_count = len(labels)
+    sz = (5, label_count * 4)
+    if small:
+        sz = (4, label_count * 3)
     x_test_lst = x_test[:, -1]
     if cmap is None:
         cm = mpl.cm.get_cmap('Set1', label_count)
         cmap = [mpl.colors.rgb2hex(cm(i)) for i in range(label_count)]
     y_pred, _ = get_predictions(experiment, labels)
-    fig, ax = plt.subplots(label_count, 1, figsize=(5, label_count * 4))
+    fig, ax = plt.subplots(label_count, 1, figsize=sz)
     # fig.suptitle("Test predictions histogram")
     for i, (name, tag) in enumerate(zip(names, label_ids)):
         label_ids_l = label_ids[i:] + label_ids[:i]
@@ -173,7 +179,7 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
             bins, bin_edges = np.histogram(x_test_type_lst[np.where(y_pred_type == n)], bins=50, range=(min(x_test_lst), max(x_test_lst)), density=False)
             bins_type.append(bins)
         bins, bin_edges = np.histogram(x_test_type_lst, bins=50, range=(min(x_test_lst), max(x_test_lst)), density=False)
-        ax[tag].set_title(name)
+        ax[tag].set_title(name, fontsize=12)
         for m in label_ids:
             label = names[m] if names is not None else labels[m]
             container = ax[tag].bar(0, 0, width=0, color=cmap[m], label=label)
@@ -183,10 +189,10 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
                 container = ax[tag].bar(l_edge, bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
                 bottom += bins_type[m][n]
         ax[tag].legend()
-        ax[tag].set_xlabel("WS(pm)")
-        ax[tag].set_ylabel("Count")
+        ax[tag].set_xlabel("WS(pm)", fontsize=12)
+        ax[tag].set_ylabel("Count", fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(experiment, 'tst-types-hist.png'), dpi=200)
+    plt.savefig(os.path.join(experiment, f'tst-types-hist{"(small)" if small else ""}.png'), dpi=300)
     plt.close()
     
 @log
@@ -196,11 +202,19 @@ def generate_conf_matrix(experiment, test_labels, labels, names=None):
     disp = ConfusionMatrixDisplay(cm, display_labels=names if names is not None else labels)
     pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
     plt.tight_layout()
-    plt.savefig(os.path.join(experiment, 'conf-matrix.png'), pad_inches=5, dpi=200)
+    plt.savefig(os.path.join(experiment, 'conf-matrix.png'), pad_inches=5, dpi=300)
     plt.close()
     
 @log
-def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, names=None):
+def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, names=None, small=False):
+    sz = (10,10)
+    node_ratio = 7000
+    edge_ratio = 30
+    if small:
+        sz = (5,5)
+        node_ratio = 1500
+        edge_ratio = 20
+    
     _, pred_labels = get_predictions(experiment, labels)
     cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
     label_count = len(labels)
@@ -220,7 +234,7 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
             label_ids[i],
             pos=((radius * np.cos(theta), radius * np.sin(theta))),
             color=cmap[i],
-            weight=round(cm[i,i] * 7000),
+            weight=round(cm[i,i] * node_ratio),
                   )
         if theta % (2*np.pi) >= 0 and theta % (2*np.pi) <= np.pi:
             text_pos.append((radius * np.cos(theta), radius * np.sin(theta) + .3))
@@ -234,12 +248,12 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
             G.add_edge(i,j,
                         label = labels[i] + ' to ' + labels[j],
                         color = cmap[i],
-                        weight = cm[i, j] * 30,
+                        weight = cm[i, j] * edge_ratio,
                        )
             G.add_edge(j,i,
                         label = labels[i] + ' to ' + labels[j],
                         color = cmap[j],
-                        weight = cm[j, i] * 30,
+                        weight = cm[j, i] * edge_ratio,
                        )
 
     edges = G.edges()
@@ -251,7 +265,7 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
 
 
     # Draw nodes and edges
-    plt.figure(figsize=(10,10))
+    plt.figure(figsize=sz)
     nodes = nx.draw_networkx_nodes(
         G, pos, 
         node_size=node_weights, 
@@ -274,6 +288,6 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
     plt.gca().set_frame_on(False)
     plt.xlim((-1.6,1.6))
     plt.ylim((-1.6,1.6))
-    plt.savefig(os.path.join(experiment, 'conf-graph.png'), dpi=200)
+    plt.savefig(os.path.join(experiment, f'conf-graph{"(small)" if small else ""}.png'), dpi=200)
     plt.tight_layout()
     plt.close()
