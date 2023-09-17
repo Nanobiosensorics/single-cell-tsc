@@ -27,7 +27,7 @@ def run(data_path, result_path, color_path):
     
     print("Generating average plot")
     generate_mean_plot(os.path.join(result_path, 'signal-means.png'), x_data, y_data, label_ids, cmap, names)
-    generate_mean_plot(os.path.join(result_path, 'signal-means(small).png'), x_data, y_data, label_ids, cmap, names, True)
+    generate_mean_plot(os.path.join(result_path, 'signal-means.png'), x_data, y_data, label_ids, cmap, names, True)
 
     print("Generating loss-accuracy plots")
     for experiment in experiments:
@@ -47,14 +47,14 @@ def run(data_path, result_path, color_path):
             generate_preds_plot(exp, x_test, y_test, labels, names)
 
     print("Generating test histogram plots")
-    generate_test_hist_plot(os.path.join(result_path, 'tst-hist.png'), x_test, y_test, labels, label_ids, cmap, names)
-    generate_test_hist_plot(os.path.join(result_path, 'tst-hist(small).png'), x_test, y_test, labels, label_ids, cmap, names, True)
+    generate_test_hist_plot(os.path.join(result_path, 'tst-hist.png'), x_test, y_test, labels, label_ids, cmap, names, add_lines=True)
+    generate_test_hist_plot(os.path.join(result_path, 'tst-hist.png'), x_test, y_test, labels, label_ids, cmap, names, True)
 
     print("Generating test types histogram plots")
     for experiment in experiments:
         for exp in experiment['experiments']:
-            generate_test_type_hist_plot(exp, x_test, y_test, labels, label_ids, cmap, names)
-            generate_test_type_hist_plot(exp, x_test, y_test, labels, label_ids, cmap, names, True)
+            generate_test_type_hist_plot(exp, x_test, y_test, labels, label_ids, cmap, names, add_lines=True)
+            generate_test_type_hist_plot(exp, x_test, y_test, labels, label_ids, cmap, names, True, True)
 
     print("Generating confusion matrices")
     for experiment in experiments:

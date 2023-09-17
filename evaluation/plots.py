@@ -26,6 +26,10 @@ def generate_mean_plot(filename, x_data, y_data, labels, cmap, names, small=Fals
     plt.ylabel("WS(pm)", fontsize=12)
     plt.legend()
     plt.tight_layout()
+    ext = f"(small)" if small else ""
+    filename = filename.split('.')
+    filename[0] += ext
+    filename = '.'.join(filename)
     plt.savefig(filename, dpi=200)
     plt.close()
 
@@ -163,6 +167,11 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
     ax.set_ylabel("Count", fontsize=12)
     plt.legend()
     plt.tight_layout()
+    props = list(filter(lambda a: a != "", ['small' if small else '', 'ranges' if add_lines else '']))
+    ext = f"({','.join(props)})" if len(props) > 0 else ""
+    filename = filename.split('.')
+    filename[0] += ext
+    filename = '.'.join(filename)
     plt.savefig(filename, dpi=200)
     plt.close()
 
@@ -214,7 +223,9 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
         ax[tag].set_xlabel("WS(pm)", fontsize=12)
         ax[tag].set_ylabel("Count", fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(experiment, f'tst-types-hist{"(small)" if small else ""}.png'), dpi=300)
+    props = list(filter(lambda a: a != "", ['small' if small else '', 'ranges' if add_lines else '']))
+    ext = f"({','.join(props)})" if len(props) > 0 else ""
+    plt.savefig(os.path.join(experiment, f'tst-types-hist{ext}.png'), dpi=300)
     plt.close()
 
 @log
