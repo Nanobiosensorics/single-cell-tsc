@@ -424,8 +424,8 @@ def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_
     # for FCN there is no hyperparameters fine tuning - everything is static in code
 
     # plot losses
-    plot_epochs_metric(hist, output_directory + 'epochs_loss.png')
-    plot_epochs_metric(hist, output_directory + 'epochs_acc.png', metric='accuracy')
+    # plot_epochs_metric(hist, output_directory + 'epochs_loss.png')
+    # plot_epochs_metric(hist, output_directory + 'epochs_acc.png', metric='accuracy')
     # plot_conf_matrix(y_true, y_pred, output_directory + 'conf_matrix.png')
 
     return df_metrics

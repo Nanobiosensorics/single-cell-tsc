@@ -31,7 +31,7 @@ class Classifier_INCEPTION:
             self.model = self.build_model(input_shape, nb_classes)
             if (verbose == True):
                 self.model.summary()
-            self.model.save_weights(self.output_directory + 'model_init.hdf5')
+            # self.model.save_weights(self.output_directory + 'model_init.hdf5')
 
     def _inception_module(self, input_tensor, stride=1, activation='linear'):
 
@@ -127,7 +127,7 @@ class Classifier_INCEPTION:
 
         duration = time.time() - start_time
 
-        self.model.save(self.output_directory + 'last_model.hdf5')
+        # self.model.save(self.output_directory + 'last_model.hdf5')
 
         y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
                               return_df_metrics=False)

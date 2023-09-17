@@ -25,13 +25,13 @@ class Classifier_RESNET:
             if (verbose == True):
                 self.model.summary()
             self.verbose = verbose
-            if load_weights == True:
-                self.model.load_weights(self.output_directory
-                                        .replace('resnet_augment', 'resnet')
-                                        .replace('TSC_itr_augment_x_10', 'TSC_itr_10')
-                                        + '/model_init.hdf5')
-            else:
-                self.model.save_weights(self.output_directory + 'model_init.hdf5')
+            # if load_weights == True:
+            #     self.model.load_weights(self.output_directory
+            #                             .replace('resnet_augment', 'resnet')
+            #                             .replace('TSC_itr_augment_x_10', 'TSC_itr_10')
+            #                             + '/model_init.hdf5')
+            # else:
+            #     self.model.save_weights(self.output_directory + 'model_init.hdf5')
         return
 
     def build_model(self, input_shape, nb_classes):
@@ -139,7 +139,7 @@ class Classifier_RESNET:
 
         duration = time.time() - start_time
 
-        self.model.save(self.output_directory + 'last_model.hdf5')
+        # self.model.save(self.output_directory + 'last_model.hdf5')
 
         y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
                               return_df_metrics=False)

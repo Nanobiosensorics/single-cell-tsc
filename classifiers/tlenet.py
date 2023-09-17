@@ -181,7 +181,7 @@ class Classifier_TLENET:
         hist = model.fit(x_train, y_train, batch_size=batch_size, epochs=nb_epochs,
             verbose=self.verbose, validation_data = (x_test,y_test),callbacks=self.callbacks)
 
-        model.save(self.output_directory+'last_model.hdf5')
+        # model.save(self.output_directory+'last_model.hdf5')
 
         model = keras.models.load_model(self.output_directory+'best_model.hdf5')
         

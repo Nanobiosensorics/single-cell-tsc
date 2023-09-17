@@ -359,7 +359,7 @@ class Classifier_MCNN:
                             # save model in h5 format
                             model.save(self.output_directory+'best_model.hdf5')
 
-                        model.save(self.output_directory + 'last_model.hdf5')
+                        # model.save(self.output_directory + 'last_model.hdf5')
                     if patience<= iteration:
                         done_looping=True
                         break

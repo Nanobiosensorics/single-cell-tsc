@@ -20,7 +20,7 @@ class Classifier_MLP:
 			if(verbose==True):
 				self.model.summary()
 			self.verbose = verbose
-			self.model.save_weights(self.output_directory + 'model_init.hdf5')
+			# self.model.save_weights(self.output_directory + 'model_init.hdf5')
 		return
 
 	def build_model(self, input_shape, nb_classes):
@@ -72,7 +72,7 @@ class Classifier_MLP:
 		
 		duration = time.time() - start_time
 
-		self.model.save(self.output_directory + 'last_model.hdf5')
+		# self.model.save(self.output_directory + 'last_model.hdf5')
 
 		model = keras.models.load_model(self.output_directory+'best_model.hdf5')
 
