@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+start=`date +%s`
+
 SRC_PATH=$1
 RESULT_PATH=$2
 
@@ -13,3 +15,7 @@ do
         python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i
     done
 done
+
+end=`date +%s`
+
+echo $((end-start))

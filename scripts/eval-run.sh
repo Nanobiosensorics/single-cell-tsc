@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+start=`date +%s`
+
 SRC_PATH=$1
 RESULT_PATH=$2
 
@@ -13,3 +15,7 @@ do
         python3 eval.py -p $SRC_PATH/$i/$j/ -d $RESULT_PATH/$i/$j/ -c $SRC_PATH/
     done
 done
+
+end=`date +%s`
+
+echo $((end-start))
