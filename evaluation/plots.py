@@ -159,8 +159,11 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
             sample = x_test[np.where(y_test == i), -1]
             if sample.shape[0] != 0:
                 line = list(range(int(np.min(sample)), int(np.max(sample))))
-                ax.plot(line, [-((i+1) * dff)] * len(line), color=cmap[i])
-                ax.scatter([min(line), max(line)], [-((i+1) * dff), -((i+1) * dff)], color=cmap[i], s=10)
+                if len(line) != 0:
+                    ax.plot(line, [-((i+1) * dff)] * len(line), color=cmap[i])
+                    ax.scatter([min(line), max(line)], [-((i+1) * dff), -((i+1) * dff)], color=cmap[i], s=10)
+                else:
+                    ax.scatter([int(np.min(sample))], [-((m+1) * dff)], color=cmap[m], s=10)
         ax.set_ylim(-(max(bins) * .12), max(bins) * 1.05)
     ax.set_xlabel("WS(pm)", fontsize=12)
     ax.set_ylabel("Count", fontsize=12)
@@ -215,8 +218,12 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
                 sample = x_test_type_lst[np.where(y_pred_type == m)]
                 if sample.shape[0] != 0:
                     line = list(range(int(np.min(sample)), int(np.max(sample))))
-                    ax[tag].plot(line, [-((m+1) * dff)] * len(line), color=cmap[m])
-                    ax[tag].scatter([min(line), max(line)], [-((m+1) * dff), -((m+1) * dff)], color=cmap[m], s=10)
+                    if len(line) != 0:
+                        ax[tag].plot(line, [-((m+1) * dff)] * len(line), color=cmap[m])
+                        ax[tag].scatter([min(line), max(line)], [-((m+1) * dff), -((m+1) * dff)], color=cmap[m], s=10)
+                    else:
+                        ax[tag].scatter([int(np.min(sample))], [-((m+1) * dff)], color=cmap[m], s=10)
+                        
             ax[tag].set_ylim(-(max(bins) * .12), max(bins) * 1.05)
         ax[tag].legend()
         ax[tag].set_xlabel("WS(pm)", fontsize=12)
