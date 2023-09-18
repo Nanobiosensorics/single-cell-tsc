@@ -143,14 +143,14 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
         bins_type.append(bins)
     bins, bin_edges = np.histogram(x_test_lst, bins=50, range=(min(x_test_lst), max(x_test_lst)),density=False)
     fig, ax = plt.subplots(figsize=sz)
-    # ax.set_ylim(0, max(bins) * 1.05)
     for m in label_ids:
         label = names[m] if names is not None else labels[m]
         ax.bar(0, 0, width=0, color=cmap[m], label=label)
     for n, (l_edge, r_edge) in enumerate(zip(bin_edges[:-1], bin_edges[1:])):
+        width = r_edge - l_edge
         bottom = 0
         for m in label_ids:
-            ax.bar(l_edge, bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
+            ax.bar(l_edge + (width/2), bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
             bottom += bins_type[m][n]
     if add_lines:
         mx = max(bins) * 0.12
@@ -165,6 +165,8 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
                 else:
                     ax.scatter([int(np.min(sample))], [-((m+1) * dff)], color=cmap[m], s=10)
         ax.set_ylim(-(max(bins) * .12), max(bins) * 1.05)
+    width = np.max(x_test_lst) - np.min(x_test_lst)
+    ax.set_xlim(np.min(x_test_lst) - .02 * width, np.max(x_test_lst) + .02 * width)
     ax.set_xlabel("WS(pm)", fontsize=12)
     ax.set_ylabel("Count", fontsize=12)
     plt.legend()
@@ -207,9 +209,10 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
             label = names[m] if names is not None else labels[m]
             container = ax[tag].bar(0, 0, width=0, color=cmap[m], label=label)
         for n, (l_edge, r_edge) in enumerate(zip(bin_edges[:-1], bin_edges[1:])):
+            width = r_edge - l_edge
             bottom = 0
             for m in label_ids_l:
-                container = ax[tag].bar(l_edge, bins_type[m][n], width=(r_edge - l_edge), color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
+                container = ax[tag].bar(l_edge + (width/2), bins_type[m][n], width=width, color=cmap[m], edgecolor='black', linewidth=.2, bottom=bottom)
                 bottom += bins_type[m][n]
         if add_lines:
             mx = max(bins) * 0.12
@@ -225,6 +228,8 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
                         ax[tag].scatter([int(np.min(sample))], [-((m+1) * dff)], color=cmap[m], s=10)
                         
             ax[tag].set_ylim(-(max(bins) * .12), max(bins) * 1.05)
+        width = np.max(x_test_lst) - np.min(x_test_lst)
+        ax[tag].set_xlim(np.min(x_test_lst) - .02 * width, np.max(x_test_lst) + .02 * width)
         ax[tag].legend()
         ax[tag].set_xlabel("WS(pm)", fontsize=12)
         ax[tag].set_ylabel("Count", fontsize=12)
