@@ -128,8 +128,6 @@ def generate_preds_plot(experiment, x_test, y_test, labels, names=None):
     plt.savefig(os.path.join(experiment, 'tst-predictions.png'), dpi=200)
     plt.close()
 
-from scipy.stats import lognorm
-
 @log
 def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=None, names=None, small=False, add_lines=False):
     sz = (4, 3) if small else (5,4)
@@ -159,9 +157,10 @@ def generate_test_hist_plot(filename, x_test, y_test, labels, label_ids, cmap=No
         dff = mx / (len(label_ids) + 2)
         for i in label_ids:
             sample = x_test[np.where(y_test == i), -1]
-            line = list(range(int(np.min(sample)), int(np.max(sample))))
-            ax.plot(line, [-((i+1) * dff)] * len(line), color=cmap[i])
-            ax.scatter([min(line), max(line)], [-((i+1) * dff), -((i+1) * dff)], color=cmap[i], s=10)
+            if sample.shape[0] != 0:
+                line = list(range(int(np.min(sample)), int(np.max(sample))))
+                ax.plot(line, [-((i+1) * dff)] * len(line), color=cmap[i])
+                ax.scatter([min(line), max(line)], [-((i+1) * dff), -((i+1) * dff)], color=cmap[i], s=10)
         ax.set_ylim(-(max(bins) * .12), max(bins) * 1.05)
     ax.set_xlabel("WS(pm)", fontsize=12)
     ax.set_ylabel("Count", fontsize=12)
