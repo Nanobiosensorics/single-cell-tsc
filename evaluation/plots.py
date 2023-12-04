@@ -7,6 +7,7 @@ import networkx as nx
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
 import re
+from iteround import saferound
 
 from evaluation.log import log
 from evaluation.load import get_max_acc_experiment, get_predictions
@@ -243,6 +244,8 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
 def generate_conf_matrix(experiment, test_labels, labels, names=None):
     y_pred, pred_labels = get_predictions(experiment, labels)
     cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
+    cm = np.array([saferound(cm[i, :], 2) for i in range(cm.shape[0]) ])
+    print(cm)
     disp = ConfusionMatrixDisplay(cm, display_labels=names if names is not None else labels)
     pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
     plt.tight_layout()
