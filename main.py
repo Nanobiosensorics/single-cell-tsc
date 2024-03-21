@@ -39,7 +39,7 @@ def fit_classifier_kfold(data_loader, classifier_name, output_directory):
         
         y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
         y_pred = np.argmax(y_pred, axis=1)
-        true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
+        true_pred_values = pd.DataFrame({"test": X_test, "true": y_true, "pred": y_pred})
         true_pred_values.to_csv(os.path.join(target_dir, 'test_output.csv'), header=False, index=False)
         # plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
 

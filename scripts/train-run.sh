@@ -13,6 +13,7 @@ do
     do
         # echo -p $SRC_PATH -d $RESULT_PATH -m all -t $j -tp $i
         python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i
+        python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i -v cross_val
     done
 done
 
