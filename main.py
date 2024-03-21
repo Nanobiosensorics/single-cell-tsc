@@ -74,7 +74,7 @@ def fit_classifier(dataset, classifier_name, output_directory):
     y_pred = np.argmax(y_pred, axis=1)
     y_true_labels = [ labels[i] for i in y_true ]
     y_pred_labels = [ labels[i] for i in y_pred ]
-    true_pred_values = pd.DataFrame({"true": y_true, "pred": y_pred})
+    true_pred_values = pd.DataFrame({"test": X_test, "true": y_true, "pred": y_pred})
     true_pred_values.to_csv(os.path.join(output_directory, 'test_output.csv'), header=False, index=False)
     
     plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
