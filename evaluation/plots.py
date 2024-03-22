@@ -16,11 +16,136 @@ from evaluation.load import get_max_acc_experiment, get_predictions
 import warnings
 warnings.filterwarnings("ignore")
 
+class ConfusionMatrixDisplayWithCount(ConfusionMatrixDisplay):
+    def __init__(self, confusion_matrix, count_matrix=None, *, display_labels=None):
+        self.confusion_matrix = confusion_matrix
+        self.count_matrix = count_matrix
+        self.display_labels = display_labels
 
-class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplay):
-    def __init__(self, confusion_matrices, *, display_labels=None):
+    def plot(
+        self,
+        *,
+        include_values=True,
+        cmap="viridis",
+        xticks_rotation="horizontal",
+        values_format=None,
+        ax=None,
+        colorbar=True,
+        im_kw=None,
+        text_kw=None,
+    ):
+        """Plot visualization.
+
+        Parameters
+        ----------
+        include_values : bool, default=True
+            Includes values in confusion matrix.
+
+        cmap : str or matplotlib Colormap, default='viridis'
+            Colormap recognized by matplotlib.
+
+        xticks_rotation : {'vertical', 'horizontal'} or float, \
+                         default='horizontal'
+            Rotation of xtick labels.
+
+        values_format : str, default=None
+            Format specification for values in confusion matrix. If `None`,
+            the format specification is 'd' or '.2g' whichever is shorter.
+
+        ax : matplotlib axes, default=None
+            Axes object to plot on. If `None`, a new figure and axes is
+            created.
+
+        colorbar : bool, default=True
+            Whether or not to add a colorbar to the plot.
+
+        im_kw : dict, default=None
+            Dict with keywords passed to `matplotlib.pyplot.imshow` call.
+
+        text_kw : dict, default=None
+            Dict with keywords passed to `matplotlib.pyplot.text` call.
+
+            .. versionadded:: 1.2
+
+        Returns
+        -------
+        display : :class:`~sklearn.metrics.ConfusionMatrixDisplay`
+            Returns a :class:`~sklearn.metrics.ConfusionMatrixDisplay` instance
+            that contains all the information to plot the confusion matrix.
+        """
+        check_matplotlib_support("ConfusionMatrixDisplay.plot")
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
+
+        cm = self.confusion_matrix
+        n_classes = cm.shape[0]
+
+        default_im_kw = dict(interpolation="nearest", cmap=cmap)
+        im_kw = im_kw or {}
+        im_kw = {**default_im_kw, **im_kw}
+        text_kw = text_kw or {}
+
+        self.im_ = ax.imshow(cm, **im_kw)
+        self.text_ = None
+        cmap_min, cmap_max = self.im_.cmap(0), self.im_.cmap(1.0)
+
+        if include_values:
+            self.text_ = np.empty_like(cm, dtype=object)
+
+            # print text with appropriate color depending on background
+            thresh = (cm.max() + cm.min()) / 2.0
+
+            for i, j in product(range(n_classes), range(n_classes)):
+                color = cmap_max if cm[i, j] < thresh else cmap_min
+
+                if values_format is None:
+                    text_cm = f'{format(cm[i, j], ".2f")}' + '' if self.count_matrix is None else f'{format(self.count_matrix[i,j], "d")}'
+                    # if cm.dtype.kind != "f":
+                    #    text_d = f'{format(cm[i, j], "d")}' + '' if self.count_matrix is None else f'{format(self.count_matrix[i,j], "d")}'
+                    #    if len(text_d) < len(text_cm):
+                    #        text_cm = text_d
+                else:
+                    text_cm = f'{format(cm[i, j], values_format)}' + '' if self.count_matrix is None else f'{format(self.count_matrix[i,j], values_format)}'
+
+                default_text_kwargs = dict(ha="center", va="center", color=color)
+                text_kwargs = {**default_text_kwargs, **text_kw}
+
+                self.text_[i, j] = ax.text(j, i, text_cm, **text_kwargs)
+
+        if self.display_labels is None:
+            display_labels = np.arange(n_classes)
+        else:
+            display_labels = self.display_labels
+        if colorbar:
+            fig.colorbar(self.im_, ax=ax)
+        ax.set(
+            xticks=np.arange(n_classes),
+            yticks=np.arange(n_classes),
+            xticklabels=display_labels,
+            yticklabels=display_labels,
+            ylabel="True label",
+            xlabel="Predicted label",
+        )
+
+        ax.set_ylim((n_classes - 0.5, -0.5))
+        plt.setp(ax.get_xticklabels(), rotation=xticks_rotation)
+
+        self.figure_ = fig
+        self.ax_ = ax
+        return self
+
+class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplayWithCount):
+    def __init__(self, confusion_matrices, count_matrix=None, *, display_labels=None):
         self.mean_confusion_matrix = np.mean(confusion_matrices, axis=0)
         self.std_confusion_matrix = np.std(confusion_matrices, axis=0)
+        self.count_matrix = count_matrix
+        if self.count_matrix is not None:
+            self.mean_count_matrix = np.mean(count_matrix, axis=0)
+            self.std_count_matrix = np.std(count_matrix, axis=0)
         self.display_labels = display_labels
 
     def plot(
@@ -105,7 +230,7 @@ class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplay):
                 color = cmap_max if cm[i, j] < thresh else cmap_min
 
                 if values_format is None:
-                    text_cm = f'{format(cm[i, j], ".2f")}±{format(cm_std[i, j], ".2f")}'
+                    text_cm = f'{format(cm[i, j], ".2f")}±{format(cm_std[i, j], ".2f")}' + '' if self.count_matrix is None else f'\n{format(self.mean_count_matrix[i, j], "d")}±{format(self.std_count_matrix[i, j], "d")}'
 #                    if cm.dtype.kind != "f":
 #                        text_d = f'{format(cm[i, j], "d")}±{format(cm_std[i, j], "d")}'
 #                        if len(text_d) < len(text_cm):
@@ -369,23 +494,42 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
 @log
 def generate_conf_matrix(experiment, test_labels, labels, names=None):
     x_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
+    
     cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
     cm = np.array([saferound(cm[i, :], 2) for i in range(cm.shape[0]) ])
-    disp = ConfusionMatrixDisplay(cm, display_labels=names if names is not None else labels)
+    disp = ConfusionMatrixDisplayWithCount(cm, display_labels=names if names is not None else labels)
     pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
     plt.tight_layout()
     plt.savefig(os.path.join(experiment, 'conf-matrix.png'), pad_inches=5, dpi=300)
     plt.close()
     
+    cm_c = confusion_matrix(test_labels, pred_labels, labels=labels)
+    disp = ConfusionMatrixDisplayWithCount(cm, cm_c, display_labels=names if names is not None else labels)
+    pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
+    plt.tight_layout()
+    plt.savefig(os.path.join(experiment, 'conf-matrix-count.png'), pad_inches=5, dpi=300)
+    plt.close()
+    
 def generate_conf_matrix_cross_val(experiments, labels, names=None):
     cms = []
+    cm_cs = []
     for experiment in experiments:
         _, _, _, test_labels, pred_labels = get_predictions(experiment, labels)
         cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
         cm = np.array([saferound(cm[i, :], 2) for i in range(cm.shape[0]) ])
+        cm_c = confusion_matrix(test_labels, pred_labels, labels=labels)
         cms.append(cm)
+        cm_cs.append(cm_c)
     cms = np.asarray(cms)
+    cm_cs = np.asarray(cm_cs)
+    
     disp = ConfusionMatrixDisplayCrossVal(cms, display_labels=names if names is not None else labels)
+    pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
+    plt.tight_layout()
+    plt.savefig(os.path.join(experiment, 'conf-matrix-cross-val.png'), pad_inches=5, dpi=300)
+    plt.close()
+    
+    disp = ConfusionMatrixDisplayCrossVal(cms, cm_cs, display_labels=names if names is not None else labels)
     pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
     plt.tight_layout()
     plt.savefig(os.path.join(experiment, 'conf-matrix-cross-val.png'), pad_inches=5, dpi=300)
