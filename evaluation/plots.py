@@ -82,8 +82,8 @@ class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplay):
         else:
             fig = ax.figure
 
-        cm = self.mean_confusion_matrix
-        cm_std = self.std_confusion_matrix
+        cm = np.round(self.mean_confusion_matrix,2)
+        cm_std = np.round(self.std_confusion_matrix, 2)
         n_classes = cm.shape[0]
 
         default_im_kw = dict(interpolation="nearest", cmap=cmap)
@@ -105,11 +105,11 @@ class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplay):
                 color = cmap_max if cm[i, j] < thresh else cmap_min
 
                 if values_format is None:
-                    text_cm = f'{format(cm[i, j], ".2g")}±{format(cm_std[i, j], ".2g")}'
-                    if cm.dtype.kind != "f":
-                        text_d = f'{format(cm[i, j], "d")}±{format(cm_std[i, j], "d")}'
-                        if len(text_d) < len(text_cm):
-                            text_cm = text_d
+                    text_cm = f'{format(cm[i, j], ".2f")}±{format(cm_std[i, j], ".2f")}'
+#                    if cm.dtype.kind != "f":
+#                        text_d = f'{format(cm[i, j], "d")}±{format(cm_std[i, j], "d")}'
+#                        if len(text_d) < len(text_cm):
+#                            text_cm = text_d
                 else:
                     text_cm = f'{format(cm[i, j], values_format)}±{format(cm_std[i, j], values_format)}'
 
@@ -377,7 +377,6 @@ def generate_conf_matrix(experiment, test_labels, labels, names=None):
     plt.savefig(os.path.join(experiment, 'conf-matrix.png'), pad_inches=5, dpi=300)
     plt.close()
     
-@log
 def generate_conf_matrix_cross_val(experiments, labels, names=None):
     cms = []
     for experiment in experiments:
