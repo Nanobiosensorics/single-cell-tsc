@@ -81,7 +81,7 @@ def generate_tst_pred_plot(experiment, x_test, y_test, labels, cmap=None, names=
     if cmap is None:
         cm = mpl.cm.get_cmap('Set1', label_count)
         cmap = [mpl.colors.rgb2hex(cm(i)) for i in range(label_count)]
-    y_pred, _ = get_predictions(experiment, labels)
+    x_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
     fig, ax = plt.subplots(len(labels),1, figsize=(5,len(labels) * 4))
     # fig.suptitle("Test predictions")
     for i in range(label_count):
@@ -108,7 +108,7 @@ def generate_tst_pred_plot(experiment, x_test, y_test, labels, cmap=None, names=
 def generate_preds_plot(experiment, x_test, y_test, labels, names=None):
     label_count = len(labels)
     cmap = ['r', 'g']
-    y_pred, _ = get_predictions(experiment, labels)
+    xx_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
     fig, ax = plt.subplots(len(labels),1, figsize=(5,len(labels) * 4))
     for i in range(label_count):
         for n, label in enumerate(['false', 'true']):
@@ -190,7 +190,7 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
     if cmap is None:
         cm = mpl.cm.get_cmap('Set1', label_count)
         cmap = [mpl.colors.rgb2hex(cm(i)) for i in range(label_count)]
-    y_pred, _ = get_predictions(experiment, labels)
+    x_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
     fig, ax = plt.subplots(label_count, 1, figsize=sz)
     # fig.suptitle("Test predictions histogram")
     for i, (name, tag) in enumerate(zip(names, label_ids)):
@@ -242,7 +242,7 @@ def generate_test_type_hist_plot(experiment, x_test, y_test, labels, label_ids, 
 
 @log
 def generate_conf_matrix(experiment, test_labels, labels, names=None):
-    y_pred, pred_labels = get_predictions(experiment, labels)
+    x_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
     cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
     cm = np.array([saferound(cm[i, :], 2) for i in range(cm.shape[0]) ])
     disp = ConfusionMatrixDisplay(cm, display_labels=names if names is not None else labels)
@@ -261,7 +261,7 @@ def generate_conf_graph(experiment, test_labels, labels, label_ids, cmap=None, n
         node_ratio = 1500
         edge_ratio = 20
 
-    _, pred_labels = get_predictions(experiment, labels)
+    x_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
     cm = confusion_matrix(test_labels, pred_labels, labels=labels, normalize='true')
     label_count = len(labels)
     if cmap is None:

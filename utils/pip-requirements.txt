@@ -1,4 +1,4 @@
-sklearn
+scikit-learn
 matplotlib
 keras
 h5py

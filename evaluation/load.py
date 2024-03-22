@@ -15,9 +15,12 @@ def get_max_acc_experiment(experiment):
 
 def get_predictions(experiment, labels):
     preds = pd.read_csv(os.path.join(experiment, 'test_output.csv'), header=None)
+    y_test = np.array(preds.iloc[:, 1])
     y_pred = np.array(preds.iloc[:, 1])
+    x_test = np.array(preds.iloc[:, 2:])
+    test_labels = [labels[y_test[n]] for n in range(y_test.shape[0])]
     pred_labels = [labels[y_pred[n]] for n in range(y_pred.shape[0])]
-    return y_pred, pred_labels
+    return x_test, y_test, y_pred, test_labels, pred_labels
 
 
 def get_data(path, labels):

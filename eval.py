@@ -16,6 +16,8 @@ def run(data_path, result_path, color_path):
                                             for name in os.listdir(result['path']) if os.path.isdir(os.path.join(result['path'], name))])
         if len(obj['experiments']) == 0:
             obj['experiments'] = [result['path']]
+        else:
+            obj['experiments'].append(result['path'])
         experiments.append(obj)
 
     labels, label_ids = get_dictionary(data_path)
