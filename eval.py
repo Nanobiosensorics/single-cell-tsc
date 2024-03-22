@@ -62,8 +62,8 @@ def run(data_path, result_path, color_path):
     for experiment in experiments:
         for exp in experiment['experiments']:
             generate_conf_matrix(exp, test_labels, labels, names)
-        if len(experiment) > 1:
-            generate_conf_matrix_cross_val(experiment, labels, names)
+        if len(experiment['experiments']) > 1:
+            generate_conf_matrix_cross_val(experiment['experiments'], labels, names)
 
     print("Generating confusion graphs")
     for experiment in experiments:

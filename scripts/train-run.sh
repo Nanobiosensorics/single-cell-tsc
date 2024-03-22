@@ -12,8 +12,8 @@ do
     for j in "${times[@]}"
     do
         # echo -p $SRC_PATH -d $RESULT_PATH -m all -t $j -tp $i
-        python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i
-        python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i -v cross_val
+        python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i -g True
+        python3 main.py -p $SRC_PATH/$i -d $RESULT_PATH -m all -t $j -tp $i -v cross_val -g True
     done
 done
 
