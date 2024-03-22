@@ -103,7 +103,10 @@ class ConfusionMatrixDisplayWithCount(ConfusionMatrixDisplay):
                 color = cmap_max if cm[i, j] < thresh else cmap_min
 
                 if values_format is None:
-                    text_cm = f'{format(cm[i, j], ".2f")}' + '' if self.count_matrix is None else f'{format(self.count_matrix[i,j], "d")}'
+                    if self.count_matrix is None:
+                        text_cm = f'{format(cm[i, j], ".2f")}'
+                    else:
+                        text_cm = f'{format(cm[i, j], ".2f")}({format(self.count_matrix[i,j], "d")})'
                     # if cm.dtype.kind != "f":
                     #    text_d = f'{format(cm[i, j], "d")}' + '' if self.count_matrix is None else f'{format(self.count_matrix[i,j], "d")}'
                     #    if len(text_d) < len(text_cm):
@@ -144,8 +147,8 @@ class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplayWithCount):
         self.std_confusion_matrix = np.std(confusion_matrices, axis=0)
         self.count_matrix = count_matrix
         if self.count_matrix is not None:
-            self.mean_count_matrix = np.mean(count_matrix, axis=0)
-            self.std_count_matrix = np.std(count_matrix, axis=0)
+            self.mean_count_matrix = np.mean(count_matrix, axis=0).astype(int)
+            self.std_count_matrix = np.std(count_matrix, axis=0).astype(int)
         self.display_labels = display_labels
 
     def plot(
@@ -230,7 +233,10 @@ class ConfusionMatrixDisplayCrossVal(ConfusionMatrixDisplayWithCount):
                 color = cmap_max if cm[i, j] < thresh else cmap_min
 
                 if values_format is None:
-                    text_cm = f'{format(cm[i, j], ".2f")}±{format(cm_std[i, j], ".2f")}' + '' if self.count_matrix is None else f'\n{format(self.mean_count_matrix[i, j], "d")}±{format(self.std_count_matrix[i, j], "d")}'
+                    if self.count_matrix is None:
+                        text_cm = f'{format(cm[i, j], ".2f")}±{format(cm_std[i, j], ".2f")}'
+                    else:
+                        text_cm = f'{format(cm[i, j], ".2f")}±{format(cm_std[i, j], ".2f")}\n({format(self.mean_count_matrix[i, j], "d")}±{format(self.std_count_matrix[i, j], "d")})'
 #                    if cm.dtype.kind != "f":
 #                        text_d = f'{format(cm[i, j], "d")}±{format(cm_std[i, j], "d")}'
 #                        if len(text_d) < len(text_cm):
@@ -532,7 +538,7 @@ def generate_conf_matrix_cross_val(experiments, labels, names=None):
     disp = ConfusionMatrixDisplayCrossVal(cms, cm_cs, display_labels=names if names is not None else labels)
     pl = disp.plot(cmap=mpl.cm.Blues, xticks_rotation=30)
     plt.tight_layout()
-    plt.savefig(os.path.join(experiment, 'conf-matrix-cross-val.png'), pad_inches=5, dpi=300)
+    plt.savefig(os.path.join(experiment, 'conf-matrix-cross-val-count.png'), pad_inches=5, dpi=300)
     plt.close()
 
 @log
