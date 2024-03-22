@@ -9,11 +9,10 @@ from utils.utils import plot_conf_matrix
         
 def fit_classifier_kfold(data_loader, classifier_name, output_directory, apply_gradient=False):
     
-    for n, (_X_train, y_train, _X_test, y_test, (labels, classes), scaler) in enumerate(data_loader):
+    for n, (X_train, y_train, X_test, y_test, (labels, classes), scaler) in enumerate(data_loader):
         target_dir = os.path.join(output_directory, f'cv_{n}') + '/'
         create_directory(target_dir)
-        X_train = _X_train.copy()
-        X_test = _X_test.copy()
+        X_test_org = X_test.copy().reshape((X_test.shape[0], X_test.shape[1], 1))
     
         print(labels, classes)
         nb_classes = len(classes)
@@ -45,14 +44,13 @@ def fit_classifier_kfold(data_loader, classifier_name, output_directory, apply_g
         
         y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
         y_pred = np.argmax(y_pred, axis=1)
-        output = np.hstack((y_test, y_pred, _X_test))
+        output = np.hstack((y_test, y_pred, X_test_org))
         true_pred_values = pd.DataFrame(output)
         true_pred_values.to_csv(os.path.join(target_dir, 'test_output.csv'), header=False, index=False)
 
 def fit_classifier(dataset, classifier_name, output_directory, apply_gradient=False):
-    _X_train, y_train, _X_test, y_test, (labels, classes), scaler = dataset
-    X_train = _X_train.copy()
-    X_test = _X_test.copy()
+    X_train, y_train, X_test, y_test, (labels, classes), scaler = dataset
+    X_test_org = X_test.copy().reshape((X_test.shape[0], X_test.shape[1], 1))
 
     print(labels, classes)
     nb_classes = len(classes)
@@ -83,7 +81,7 @@ def fit_classifier(dataset, classifier_name, output_directory, apply_gradient=Fa
     
     y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
     y_pred = np.argmax(y_pred, axis=1)
-    output = np.hstack((y_test, y_pred, _X_test))
+    output = np.hstack((y_test, y_pred, X_test_org))
     true_pred_values = pd.DataFrame(output)
     true_pred_values.to_csv(os.path.join(output_directory, 'test_output.csv'), header=False, index=False)
 
