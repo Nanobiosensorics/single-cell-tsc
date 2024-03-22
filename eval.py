@@ -62,6 +62,8 @@ def run(data_path, result_path, color_path):
     for experiment in experiments:
         for exp in experiment['experiments']:
             generate_conf_matrix(exp, test_labels, labels, names)
+        if len(experiment) > 1:
+            generate_conf_matrix_cross_val(experiment, labels, names)
 
     print("Generating confusion graphs")
     for experiment in experiments:
@@ -69,11 +71,11 @@ def run(data_path, result_path, color_path):
             generate_conf_graph(exp, test_labels, labels, label_ids, cmap, names)
             generate_conf_graph(exp, test_labels, labels, label_ids, cmap, names, True)
 
-    for experiment in experiments:
-        for exp in experiment['experiments']:
-            if(any(classifier in exp for classifier in ['fcn', 'resnet', 'inception'])):
-                dataset = load_dataset(data_path, resample=False, scale=False)
-                viz_cam(dataset, exp)
+    # for experiment in experiments:
+    #     for exp in experiment['experiments']:
+    #         if(any(classifier in exp for classifier in ['fcn', 'resnet', 'inception'])):
+    #             dataset = load_dataset(data_path, resample=False, scale=False)
+    #             viz_cam(dataset, exp)
             
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DL-4-TS-EVAL')
