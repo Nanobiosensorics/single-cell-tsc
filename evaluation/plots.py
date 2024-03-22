@@ -108,7 +108,7 @@ def generate_tst_pred_plot(experiment, x_test, y_test, labels, cmap=None, names=
 def generate_preds_plot(experiment, x_test, y_test, labels, names=None):
     label_count = len(labels)
     cmap = ['r', 'g']
-    xx_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
+    x_test, y_test, y_pred, test_labels, pred_labels = get_predictions(experiment, labels)
     fig, ax = plt.subplots(len(labels),1, figsize=(5,len(labels) * 4))
     for i in range(label_count):
         for n, label in enumerate(['false', 'true']):
