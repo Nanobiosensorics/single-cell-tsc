@@ -7,11 +7,13 @@ import pandas as pd
 import sklearn
 from utils.utils import plot_conf_matrix
         
-def fit_classifier_kfold(data_loader, classifier_name, output_directory):
+def fit_classifier_kfold(data_loader, classifier_name, output_directory, apply_gradient=False):
     
-    for n, (X_train, y_train, X_test, y_test, (labels, classes), scaler) in enumerate(data_loader):
+    for n, (_X_train, y_train, _X_test, y_test, (labels, classes), scaler) in enumerate(data_loader):
         target_dir = os.path.join(output_directory, f'cv_{n}') + '/'
         create_directory(target_dir)
+        X_train = _X_train.copy()
+        X_test = _X_test.copy()
     
         print(labels, classes)
         nb_classes = len(classes)
@@ -26,6 +28,10 @@ def fit_classifier_kfold(data_loader, classifier_name, output_directory):
 
         # save orignal y because later we will use binary
         # y_true = np.argmax(y_test, axis=1)
+        
+        if apply_gradient:
+            X_train = np.gradient(X_train, axis=0)
+            X_test = np.gradient(X_test, axis=0)
 
         if len(X_train.shape) == 2:  # if univariate
             # add a dimension to make it multivariate with one dimension 
@@ -39,14 +45,15 @@ def fit_classifier_kfold(data_loader, classifier_name, output_directory):
         
         y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
         y_pred = np.argmax(y_pred, axis=1)
-        output = np.hstack((y_test, y_pred, X_test))
+        output = np.hstack((y_test, y_pred, _X_test))
         true_pred_values = pd.DataFrame(output)
         true_pred_values.to_csv(os.path.join(target_dir, 'test_output.csv'), header=False, index=False)
-        # plot_conf_matrix(y_true_labels, y_pred_labels, labels, target_dir + 'conf-matrix.png') 
 
-def fit_classifier(dataset, classifier_name, output_directory):
-    X_train, y_train, X_test, y_test, (labels, classes), scaler = dataset
-    
+def fit_classifier(dataset, classifier_name, output_directory, apply_gradient=False):
+    _X_train, y_train, _X_test, y_test, (labels, classes), scaler = dataset
+    X_train = _X_train.copy()
+    X_test = _X_test.copy()
+
     print(labels, classes)
     nb_classes = len(classes)
     
@@ -60,6 +67,9 @@ def fit_classifier(dataset, classifier_name, output_directory):
 
     # save orignal y because later we will use binary
     # y_true = np.argmax(y_test, axis=1)
+    if apply_gradient:
+        X_train = np.gradient(X_train, axis=0)
+        X_test = np.gradient(X_test, axis=0)
 
     if len(X_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension 
@@ -73,14 +83,9 @@ def fit_classifier(dataset, classifier_name, output_directory):
     
     y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
     y_pred = np.argmax(y_pred, axis=1)
-    y_true_labels = [ labels[i] for i in y_true ]
-    y_pred_labels = [ labels[i] for i in y_pred ]
-    output = np.hstack((y_test, y_pred, X_test))
+    output = np.hstack((y_test, y_pred, _X_test))
     true_pred_values = pd.DataFrame(output)
     true_pred_values.to_csv(os.path.join(output_directory, 'test_output.csv'), header=False, index=False)
-    
-    plot_conf_matrix(y_true_labels, y_pred_labels, labels, output_directory + 'conf-matrix.png') 
-
 
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=True):
     if classifier_name == 'fcn':
@@ -140,13 +145,13 @@ def run(args):
             if os.path.exists(test_dir_df_metrics):
                 print('Already done')
             else:
-                fit_classifier(dataset, classifier_name, output_directory)
+                fit_classifier(dataset, classifier_name, output_directory, apply_gradient=args.gradient)
         else:
             test_dir_df_metrics = os.path.join(output_directory, 'cv0', 'df_metrics.csv')
             if os.path.exists(test_dir_df_metrics):
                 print('Already done')
             else:
-                fit_classifier_kfold(dataset, classifier_name, output_directory)
+                fit_classifier_kfold(dataset, classifier_name, output_directory, apply_gradient=args.gradient)
 
         print('DONE')
     
@@ -161,6 +166,7 @@ if __name__ == "__main__":
                                  'viz_for_survey_paper', 'viz_cam', 'generate_results'], required=True)
     parser.add_argument('-t', '--time', type=int, required=True)
     parser.add_argument('-tp','--cell_types', type=str, required=True)
+    parser.add_argument('-g','--gradient', type=bool, required=False, default=False)
     args = parser.parse_args()
     args.cell_types = sorted(args.cell_types.split('-'))
     print(args.cell_types)
