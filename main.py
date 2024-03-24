@@ -44,7 +44,7 @@ def fit_classifier_kfold(data_loader, classifier_name, output_directory, apply_g
         
         y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
         y_pred = np.argmax(y_pred, axis=1)
-        output = np.hstack((y_test.reshape(-1, 1), y_pred.reshape(-1, 1), scaler.inverse_transform(X_test_org.squeeze())))
+        output = np.hstack((y_true.reshape(-1, 1), y_pred.reshape(-1, 1), scaler.inverse_transform(X_test_org.squeeze())))
         true_pred_values = pd.DataFrame(output)
         true_pred_values.to_csv(os.path.join(target_dir, 'test_output.csv'), header=False, index=False)
 
@@ -81,7 +81,7 @@ def fit_classifier(dataset, classifier_name, output_directory, apply_gradient=Fa
     
     y_pred = classifier.predict(X_test, y_true, X_train, y_train, y_test, return_df_metrics = False)
     y_pred = np.argmax(y_pred, axis=1)
-    output = np.hstack((y_test.reshape(-1, 1), y_pred.reshape(-1, 1), scaler.inverse_transform(X_test_org.squeeze())))
+    output = np.hstack((y_true.reshape(-1, 1), y_pred.reshape(-1, 1), scaler.inverse_transform(X_test_org.squeeze())))
     true_pred_values = pd.DataFrame(output)
     true_pred_values.to_csv(os.path.join(output_directory, 'test_output.csv'), header=False, index=False)
 
